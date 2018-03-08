@@ -1,0 +1,9 @@
+
+msgid "Home"
+msgstr "主页"
+
+msgid "Please Login"
+msgstr "请登陆"
+
+msgid "Choose language"
+msgstr "选择界面语言"

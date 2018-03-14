@@ -37,6 +37,9 @@ func (this LoginApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 		case "setLang":
 			this.setUILang(w, r)
 			break
+		case "exit":
+			this.exit(w, r)
+			break
 		default:
 			this.showForm(w, r)
 		}
@@ -68,6 +71,20 @@ func (this LoginApp) setUILang(w http.ResponseWriter, r *http.Request) {
 		lang = "en_US"
 	}
 	webcore.SetUILang(w, r, lang)
+	http.Redirect(w, r, "/login.html", http.StatusFound)
+}
+
+func (this LoginApp) exit(w http.ResponseWriter, r *http.Request) {
+	sessionCookie, err := r.Cookie("session")
+	if err == nil {
+		session := webcore.GetSession(sessionCookie.Value)
+		if session != nil {
+			webcore.RemoveSession(session)
+		}
+		sessionCookie.Value = ""
+		sessionCookie.MaxAge = 0
+		http.SetCookie(w, sessionCookie)
+	}
 	http.Redirect(w, r, "/login.html", http.StatusFound)
 }
 

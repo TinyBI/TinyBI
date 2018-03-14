@@ -10,3 +10,6 @@ msgstr "选择界面语言"
 
 msgid "Wrong Email address or password"
 msgstr "用户名或密码错误"
+
+msgid "Dashboard"
+msgstr "仪表盘"

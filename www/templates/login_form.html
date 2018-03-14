@@ -21,7 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
@@ -64,6 +64,12 @@
                         <h3 class="panel-title">{{gettext "Please Login"}}</h3>
                     </div>
                     <div class="panel-body">
+					{{if .Show }}
+						<div class="alert alert-danger alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Message}}
+                            </div>
+					{{end}}
                         <form id="login" role="form" action="/login.html" method="post">
                             <fieldset>
                                 <div class="form-group">

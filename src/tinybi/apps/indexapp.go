@@ -21,19 +21,55 @@
 package apps
 
 import (
+	"log"
+	"net/http"
+	"tinybi/core"
 	"tinybi/webcore"
 )
 
-var WebRoutes map[string]webcore.WebApp
-
-func init() {
-	WebRoutes = make(map[string]webcore.WebApp)
-	loadRoutes()
+type IndexApp struct {
+	webcore.BaseWebApp
 }
 
-func loadRoutes() {
-	//Add web routes here;
-	WebRoutes["/"] = IndexApp{}
-	WebRoutes["/index.html"] = IndexApp{}
-	WebRoutes["/login.html"] = LoginApp{}
+func (this IndexApp) Dispatch(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		switch r.URL.Query().Get("act") {
+		case "setLang":
+			this.setUILang(w, r)
+			break
+		default:
+			this.showPage(w, r)
+		}
+
+	} else {
+		//Do nothing;
+	}
+}
+
+func (this IndexApp) setUILang(w http.ResponseWriter, r *http.Request) {
+	//Default language;
+	lang := "en_US"
+	lang = r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "en_US"
+	}
+	webcore.SetUILang(w, r, lang)
+	http.Redirect(w, r, "/index.html", http.StatusFound)
+}
+
+func (this IndexApp) showPage(w http.ResponseWriter, r *http.Request) {
+	lang := webcore.GetUILang(w, r)
+	if core.Conf.Debug {
+		log.Println(lang)
+	}
+	sessionId := r.URL.Query().Get("sId")
+	if !webcore.AclCheck(sessionId, "INDEX") {
+		http.Redirect(w, r, "/login.html", http.StatusFound)
+		return
+	}
+	//Show Page;
+	err := webcore.GetTemplate(w, lang, "index.html").Execute(w, nil)
+	if err != nil {
+		log.Println(err)
+	}
 }

@@ -23,6 +23,7 @@ package webcore
 import (
 	"errors"
 	"log"
+	"strings"
 	"sync"
 	"time"
 	"tinybi/core"
@@ -34,6 +35,7 @@ type UserInfo struct {
 	Id       int64
 	UserName string
 	NickName string
+	RoleName string
 }
 
 type Session struct {
@@ -59,9 +61,16 @@ func AclCheck(sessionId string, aclCode string) bool {
 	if session == nil {
 		return false
 	}
-	if session.Expire > time.Now().Unix() {
+	if session.Expire < time.Now().Unix() {
+		if core.Conf.Debug {
+			log.Printf("(%d)Session[%s] is expired at %d\n", time.Now().Unix(), sessionId, session.Expire)
+		}
 		RemoveSession(session)
 		return false
+	}
+	//All active users have the right to visit index page;
+	if aclCode == "INDEX" {
+		return true
 	}
 	_, ok := session.AclRoles[aclCode]
 	if !ok {
@@ -82,6 +91,10 @@ func NewSession() (*Session, error) {
 	}
 	session.SessionId = u2.String()
 	session.Expire = time.Now().Unix() + core.Conf.App.Web.SessionTimeout
+	if core.Conf.Debug {
+		log.Printf("Session Timeout:%d\n", core.Conf.App.Web.SessionTimeout)
+		log.Printf("Session[%s] will be expired at %d\n", session.SessionId, session.Expire)
+	}
 	return session, nil
 }
 
@@ -114,4 +127,51 @@ func RemoveSession(session *Session) {
 		defer sessionMutex.Unlock()
 		delete(sessions, session.SessionId)
 	}
+}
+
+func EmailLogin(email, password string) *Session {
+	if email == "" || password == "" {
+		return nil
+	}
+	sql := "SELECT core_users.id AS user_id, core_users.user_name, "
+	sql += "core_users.nick_name, core_roles.role_name, core_roles.role_codes "
+	sql += "FROM core_users, core_roles WHERE core_users.role_id = core_roles.id"
+	sql += " AND core_users.user_name = ? "
+	sql += "AND md5( concat( md5(?), core_users.password_salt )) = core_users.`password` "
+	sql += "AND core_users.`status` = 'ACTIVE'"
+	row, err := core.DB.Query(sql, email, password)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query user", err)
+		}
+		return nil
+	}
+	defer row.Close()
+	session, err := NewSession()
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("System Error", err)
+		}
+		return nil
+	}
+	for row.Next() {
+		var roleCodes string
+		row.Scan(&session.User.Id, &session.User.UserName, &session.User.NickName, &session.User.RoleName, &roleCodes)
+		roles := strings.Split(roleCodes, ",")
+		session.AclRoles = make(map[string]string)
+		for _, v := range roles {
+			session.AclRoles[v] = v
+		}
+		err = SetSession(session)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println("System Error", err)
+			}
+			return nil
+		}
+		return session
+	}
+	//Normal error;
+	//Wrong username or password;
+	return nil
 }

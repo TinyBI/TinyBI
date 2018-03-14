@@ -7,3 +7,6 @@ msgstr "请登陆"
 
 msgid "Choose language"
 msgstr "选择界面语言"
+
+msgid "Wrong Email address or password"
+msgstr "用户名或密码错误"

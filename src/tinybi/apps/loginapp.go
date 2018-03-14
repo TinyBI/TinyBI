@@ -44,6 +44,19 @@ func (this LoginApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 		//Do login action;
 		r.ParseForm()
+		email := r.Form.Get("email")
+		password := r.Form.Get("password")
+		session := webcore.EmailLogin(email, password)
+		rUrl := ""
+		if session == nil {
+			rUrl = "/login.html?eNo=1"
+		} else {
+			sessionCookie := http.Cookie{Name: "session", Value: session.SessionId}
+			http.SetCookie(w, &sessionCookie)
+			rUrl = "/index.html?sId="
+			rUrl += session.SessionId
+		}
+		http.Redirect(w, r, rUrl, http.StatusFound)
 	}
 }
 
@@ -63,6 +76,24 @@ func (this LoginApp) showForm(w http.ResponseWriter, r *http.Request) {
 	if core.Conf.Debug {
 		log.Println(lang)
 	}
+	var Info struct {
+		Show    bool
+		Message string
+	}
+
+	switch r.URL.Query().Get("eNo") {
+	case "1":
+		Info.Show = true
+		Info.Message = "Wrong Email address or password"
+		break
+	default:
+		Info.Show = false
+		Info.Message = "No Error"
+		break
+	}
 	//Show login form;
-	webcore.Render(w, lang, "login_form.html", nil)
+	err := webcore.GetTemplate(w, lang, "login_form.html").Execute(w, Info)
+	if err != nil {
+		log.Println(err)
+	}
 }

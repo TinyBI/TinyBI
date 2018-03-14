@@ -45,7 +45,7 @@ func getText(input string) string {
 	return gettext.PGettext("", input)
 }
 
-func Render(w http.ResponseWriter, locale string, name string, data ...interface{}) {
+func GetTemplate(w http.ResponseWriter, locale string, name string) *template.Template {
 	tmpName := filepath.Base(name)
 	temp, ok := cache[tmpName]
 	if !ok || time.Now().Unix() > temp.Expire {
@@ -71,20 +71,14 @@ func Render(w http.ResponseWriter, locale string, name string, data ...interface
 		if err != nil {
 			log.Printf("*Fail to load template:%s\n", tFPath)
 			log.Println(err)
-			return
+			return nil
 		}
 
 		cache[tmpName] = tempNew
 		temp = tempNew
 	}
 	gettext.SetLocale(locale)
-
-	err := temp.Template.Execute(w, data)
-	if err != nil {
-		if core.Conf.Debug {
-			log.Println(err)
-		}
-	}
+	return temp.Template
 }
 
 func initI18n(locale string, domain string, dir string) {
@@ -105,7 +99,8 @@ func InitTemplate() {
 	if err == nil {
 		for _, lFile := range lDir {
 			if !lFile.IsDir() && filepath.Ext(lFile.Name()) == ".html" {
-				layoutsList = append(layoutsList, lFile.Name())
+				lPath := filepath.Join(core.Conf.App.Web.LayoutsPath, lFile.Name())
+				layoutsList = append(layoutsList, lPath)
 			}
 		}
 	}

@@ -23,6 +23,7 @@ package webcore
 import (
 	"errors"
 	"log"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -77,6 +78,31 @@ func AclCheck(sessionId string, aclCode string) bool {
 		return false
 	}
 	return true
+}
+
+func AclCheckRedirect(w http.ResponseWriter, r *http.Request, aclCode, rdirectUrl string) {
+	sessionCookie, err := r.Cookie("session")
+	sessionId := ""
+	if err != nil {
+		sessionId = r.URL.Query().Get("sId")
+	} else {
+		sessionId = sessionCookie.Value
+	}
+	if !AclCheck(sessionId, aclCode) {
+		http.Redirect(w, r, rdirectUrl, http.StatusFound)
+		return
+	}
+}
+
+func AclGetSession(r *http.Request) *Session {
+	sessionCookie, err := r.Cookie("session")
+	sessionId := ""
+	if err != nil {
+		sessionId = r.URL.Query().Get("sId")
+	} else {
+		sessionId = sessionCookie.Value
+	}
+	return GetSession(sessionId)
 }
 
 func NewSession() (*Session, error) {

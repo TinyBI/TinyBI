@@ -62,11 +62,7 @@ func (this IndexApp) showPage(w http.ResponseWriter, r *http.Request) {
 	if core.Conf.Debug {
 		log.Println(lang)
 	}
-	sessionId := r.URL.Query().Get("sId")
-	if !webcore.AclCheck(sessionId, "INDEX") {
-		http.Redirect(w, r, "/login.html", http.StatusFound)
-		return
-	}
+	webcore.AclCheckRedirect(w, r, "INDEX", "/login.html")
 	//Show Page;
 	err := webcore.GetTemplate(w, lang, "index.html").Execute(w, nil)
 	if err != nil {

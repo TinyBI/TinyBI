@@ -201,3 +201,85 @@ func EmailLogin(email, password string) *Session {
 	//Wrong username or password;
 	return nil
 }
+
+//Is the nickname has already be taken?
+func isNicknameAvaible(userId int64, nickName string) bool {
+	if userId == 0 || nickName == "" {
+		return false
+	}
+	sql := "SELECT core_users.id AS user_id "
+	sql += "FROM core_users "
+	sql += "WHERE id != ? "
+	sql += "AND nick_name = ?"
+	row, err := core.DB.Query(sql, userId, nickName)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query user", err)
+		}
+		return false
+	}
+	defer row.Close()
+	for row.Next() {
+		return false
+	}
+	return true
+}
+
+//true when success;
+//the error message can be retrieved from the second return value;
+//this method will update the password if newPassword is not empty
+func UpdateMyProfile(session *Session, info UserInfo, password string, newPassword string) (bool, string) {
+	if session == nil {
+		return false, "Illegal call"
+	}
+	//Check the current password;
+	sql := "SELECT core_users.id AS user_id "
+	sql += "FROM core_users "
+	sql += "WHERE id = ? "
+	sql += "AND md5( concat( md5(?), core_users.password_salt )) = core_users.`password` "
+	row, err := core.DB.Query(sql, session.User.Id, password)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query user", err)
+		}
+		return false, "Wrong password"
+	}
+	defer row.Close()
+	for row.Next() {
+		var userId int64
+		row.Scan(&userId)
+		if userId != session.User.Id {
+			return false, "You are not granted to update another one's profile"
+		}
+		if !isNicknameAvaible(userId, info.NickName) {
+			return false, "The username has already been taken"
+		}
+		sql := "UPDATE core_users "
+		sql += "SET nick_name = ? "
+		if newPassword != "" {
+			sql += ",password = md5( concat( md5(?), core_users.password_salt )) "
+		}
+		sql += "WHERE id = ? "
+		if newPassword != "" {
+			_, err = core.DB.Query(sql, info.NickName, newPassword, userId)
+		} else {
+			_, err = core.DB.Query(sql, info.NickName, userId)
+		}
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println("Fail to update user", err)
+			}
+			return false, "System error, please contact administrators"
+		}
+		session.User.NickName = info.NickName
+		err = SetSession(session)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println("Fail to update session", err)
+			}
+			return false, "System error, please contact administrators"
+		}
+		return true, ""
+	}
+	return false, "Wrong password"
+}

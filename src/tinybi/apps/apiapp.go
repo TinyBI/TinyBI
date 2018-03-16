@@ -18,24 +18,46 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-package webcore
+package apps
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+	"tinybi/restful"
+	"tinybi/webcore"
+)
 
-// All WEB App MUST implement the interface below;
-
-type WebApp interface {
-	Dispatch(w http.ResponseWriter, r *http.Request)
+type ApiApp struct {
+	webcore.BaseWebApp
 }
 
-type BaseWebApp struct {
-	//
-}
-
-func (this BaseWebApp) AclCodes(method string) (bool, string) {
-	return false, ""
-}
-
-func (this BaseWebApp) Dispatch(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+func (this ApiApp) Dispatch(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.Path, "/")
+	if len(paths) < 2 {
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	resourceName := paths[1]
+	resource, ok := restful.RestfulResources[resourceName]
+	if !ok {
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		resource.Get(w, r)
+		break
+	case http.MethodPost:
+		resource.Post(w, r)
+		break
+	case http.MethodPut:
+		resource.Put(w, r)
+		break
+	case http.MethodDelete:
+		resource.Delete(w, r)
+		break
+	default:
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
 }

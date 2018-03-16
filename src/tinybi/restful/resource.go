@@ -18,24 +18,20 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-package webcore
+package restful
 
-import "net/http"
+import (
+	"tinybi/webcore"
+)
 
-// All WEB App MUST implement the interface below;
+var RestfulResources map[string]webcore.RestfulResource
 
-type WebApp interface {
-	Dispatch(w http.ResponseWriter, r *http.Request)
+func init() {
+	RestfulResources = make(map[string]webcore.RestfulResource)
+	loadRoutes()
 }
 
-type BaseWebApp struct {
-	//
-}
+func loadRoutes() {
+	//Register resources here;
 
-func (this BaseWebApp) AclCodes(method string) (bool, string) {
-	return false, ""
-}
-
-func (this BaseWebApp) Dispatch(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
 }

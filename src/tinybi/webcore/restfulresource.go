@@ -20,22 +20,52 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package webcore
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 // All WEB App MUST implement the interface below;
 
-type WebApp interface {
-	Dispatch(w http.ResponseWriter, r *http.Request)
+type RestfulResource interface {
+	Get(w http.ResponseWriter, r *http.Request)
+	Post(w http.ResponseWriter, r *http.Request)
+	Put(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 }
 
-type BaseWebApp struct {
+type BaseResource struct {
 	//
 }
 
-func (this BaseWebApp) AclCodes(method string) (bool, string) {
-	return false, ""
+func (this BaseResource) Get(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
 }
 
-func (this BaseWebApp) Dispatch(w http.ResponseWriter, r *http.Request) {
+func (this BaseResource) Post(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
+}
+
+func (this BaseResource) Put(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
+}
+
+func (this BaseResource) Delete(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
+}
+
+//Parsing URI into parameters;
+//e.g. /API/Node/2
+//Return: params["Node"] => 2;
+func (this BaseResource) ParseParams(r *http.Request) map[string]string {
+	rawParams := strings.Split(r.URL.Path, "/")
+	params := make(map[string]string)
+	for i := 1; i < len(rawParams); i += 2 {
+		if i+1 < len(rawParams) {
+			params[rawParams[i]] = rawParams[i+1]
+		} else {
+			params[rawParams[i]] = ""
+		}
+	}
+	return params
 }

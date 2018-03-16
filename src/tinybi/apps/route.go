@@ -32,10 +32,11 @@ func init() {
 }
 
 func loadRoutes() {
-	//Add web routes here;
+	//Register web routes here;
 	WebRoutes["/"] = IndexApp{}
 	WebRoutes["/index.html"] = IndexApp{}
 	WebRoutes["/login.html"] = LoginApp{}
 	WebRoutes["/concurrentTasks.html"] = ConcurrentTasksApp{}
 	WebRoutes["/userProfile.html"] = UserProfileApp{}
+	WebRoutes["/API"] = ApiApp{}
 }

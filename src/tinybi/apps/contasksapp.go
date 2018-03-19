@@ -64,7 +64,11 @@ func (this ConcurrentTasksApp) Dispatch(w http.ResponseWriter, r *http.Request) 
 }
 
 func (this ConcurrentTasksApp) showPage(w http.ResponseWriter, r *http.Request) {
-	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "concurrent_tasks.html").Execute(w, nil)
+	var html struct {
+		MaxTasksPerUser int
+	}
+	html.MaxTasksPerUser = core.Conf.App.Web.MaxTasksPerUser
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "concurrent_tasks.html").Execute(w, html)
 	if err != nil {
 		log.Println(err)
 	}

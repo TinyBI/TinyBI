@@ -23,6 +23,7 @@ package webcore
 import (
 	"errors"
 	"net/http"
+	"sync"
 	"time"
 	"tinybi/core"
 )
@@ -44,7 +45,9 @@ type Task struct {
 }
 
 type TaskMaster struct {
-	Tasks map[int64]*Task
+	Mutex     *sync.RWMutex
+	Tasks     map[int64]*Task
+	UserTasks map[int64]int //Number of active tasks per user has;
 }
 
 const TaskStatusPending = "PENDING"
@@ -58,6 +61,8 @@ var WebTaskMaster *TaskMaster
 func init() {
 	WebTaskMaster = new(TaskMaster)
 	WebTaskMaster.Tasks = make(map[int64]*Task)
+	WebTaskMaster.Mutex = new(sync.RWMutex)
+	WebTaskMaster.UserTasks = make(map[int64]int)
 }
 
 //New User Level Concurrent Task;
@@ -87,6 +92,9 @@ func (this *Task) Push() error {
 	if this.Status != TaskStatusPending {
 		return errors.New("Only pending tasks can be pushed")
 	}
+	if WebTaskMaster.OwnerTasks(this.OwnerId) >= core.Conf.App.Web.MaxTasksPerUser {
+		return errors.New("Reach the max number of active task per user")
+	}
 	sql := "INSERT INTO core_concurrent_tasks "
 	sql += "(description,status,percentage,owner,owner_id) "
 	sql += "(?,?,0,?,?) "
@@ -98,14 +106,14 @@ func (this *Task) Push() error {
 	if err != nil {
 		return err
 	}
-	WebTaskMaster.Tasks[this.Id] = this
+	WebTaskMaster.Push(this)
 	return nil
 }
 
 //Remove Task from Master;
 func (this *Task) Pull() {
 	if this.Id != 0 {
-		delete(WebTaskMaster.Tasks, this.Id)
+		WebTaskMaster.Pull(this)
 	}
 }
 
@@ -215,4 +223,39 @@ func (this *TaskMaster) Run() {
 
 func (this *TaskMaster) Start() {
 	go this.Run()
+}
+
+func (this *TaskMaster) Push(t *Task) {
+	this.Mutex.Lock()
+	defer this.Mutex.Unlock()
+	this.Tasks[t.Id] = t
+	nT, ok := this.UserTasks[t.OwnerId]
+	if !ok {
+		nT = 0
+	}
+	nT += 1
+	this.UserTasks[t.OwnerId] = nT
+}
+
+func (this *TaskMaster) Pull(t *Task) {
+	this.Mutex.Lock()
+	defer this.Mutex.Unlock()
+	delete(this.Tasks, t.Id)
+	nT, ok := this.UserTasks[t.OwnerId]
+	if !ok {
+		nT = 1
+	}
+	nT -= 1
+	this.UserTasks[t.OwnerId] = nT
+}
+
+func (this *TaskMaster) OwnerTasks(onwerId int64) int {
+	if onwerId == 0 {
+		return 9999999
+	}
+	nT, ok := this.UserTasks[onwerId]
+	if !ok {
+		nT = 0
+	}
+	return nT
 }

@@ -38,5 +38,7 @@ func loadRoutes() {
 	WebRoutes["/login.html"] = LoginApp{}
 	WebRoutes["/concurrentTasks.html"] = ConcurrentTasksApp{}
 	WebRoutes["/userProfile.html"] = UserProfileApp{}
+	WebRoutes["/users.html"] = UsersApp{}
+	WebRoutes["/roles.html"] = RolesApp{}
 	WebRoutes["/API"] = ApiApp{}
 }

@@ -28,25 +28,19 @@ import (
 	"tinybi/webcore"
 )
 
-type ConcurrentTasksApp struct {
+type RolesApp struct {
 	webcore.BaseWebApp
 }
 
-type concurrentTask struct {
-	Id          int     `json:"0"`
-	Description string  `json:"1"`
-	Status      string  `json:"2"`
-	Percentage  float32 `json:"3"`
-	StartTime   string  `json:"4"`
-	EndTime     string  `json:"5"`
-	LastUpdated int64   `json:"6"`
-	Owner       string  `json:"7"`
-	OwnerId     int     `json:"8"`
+type roleRow struct {
+	RoleId    int64  `json:"0"`
+	RoleName  string `json:"1"`
+	RoleCodes string `json:"2"`
 }
 
-func (this ConcurrentTasksApp) Dispatch(w http.ResponseWriter, r *http.Request) {
+func (this RolesApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		webcore.AclCheckRedirect(w, r, "INDEX", "/login.html")
+		webcore.AclCheckRedirect(w, r, "SYSTEM", "/login.html")
 		switch r.URL.Query().Get("act") {
 		case "list":
 			//List concurrent tasks which are owned by current user;
@@ -59,33 +53,35 @@ func (this ConcurrentTasksApp) Dispatch(w http.ResponseWriter, r *http.Request) 
 			break
 		}
 	} else {
-		//This app does not accept POST action;
+		webcore.AclCheckRedirect(w, r, "SYSTEM", "/login.html")
+		switch r.URL.Query().Get("act") {
+		case "addRole":
+			this.addUser(w, r)
+			break
+		case "delRole":
+			this.delUser(w, r)
+			break
+		}
 	}
 }
 
-func (this ConcurrentTasksApp) showPage(w http.ResponseWriter, r *http.Request) {
-	var html struct {
-		MaxTasksPerUser int
-	}
-	html.MaxTasksPerUser = core.Conf.App.Web.MaxTasksPerUser
-	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "concurrent_tasks.html").Execute(w, html)
+func (this RolesApp) showPage(w http.ResponseWriter, r *http.Request) {
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "role_manager.html").Execute(w, nil)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func (this ConcurrentTasksApp) list(w http.ResponseWriter, r *http.Request) {
+func (this RolesApp) list(w http.ResponseWriter, r *http.Request) {
 	//AJAX Method;
 	nullRet := `{"data":[]}`
 	var fullRet struct {
-		Data []concurrentTask `json:"data"`
+		Data []roleRow `json:"data"`
 	}
 	//Return JSON Data;
-	sql := "SELECT id, description, `status`, percentage, start_time, end_time, last_updated, `owner`, owner_id "
-	sql += "FROM core_concurrent_tasks "
-	sql += "WHERE owner_id = ?"
-	session := webcore.AclGetSession(r)
-	row, err := core.DB.Query(sql, session.User.Id)
+	sql := "SELECT id, role_name, role_codes FROM core_roles"
+
+	row, err := core.DB.Query(sql)
 	if err != nil {
 		if core.Conf.Debug {
 			log.Println("Fail to query SQL", err)
@@ -94,24 +90,29 @@ func (this ConcurrentTasksApp) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer row.Close()
-	tasks := make([]concurrentTask, 0)
+	urs := make([]roleRow, 0)
 	for row.Next() {
-		task := concurrentTask{}
-		err = row.Scan(&task.Id, &task.Description, &task.Status,
-			&task.Percentage, &task.StartTime,
-			&task.EndTime, &task.LastUpdated, &task.Owner,
-			&task.OwnerId)
+		ur := roleRow{}
+		err = row.Scan(&ur.RoleId, &ur.RoleName, &ur.RoleCodes)
 		if err != nil {
 			w.Write([]byte(nullRet))
 			return
 		}
-		tasks = append(tasks, task)
+		urs = append(urs, ur)
 	}
-	fullRet.Data = tasks
+	fullRet.Data = urs
 	sret, err := json.Marshal(fullRet)
 	if err != nil {
 		w.Write([]byte(nullRet))
 		return
 	}
 	w.Write(sret)
+}
+
+func (this RolesApp) addUser(w http.ResponseWriter, r *http.Request) {
+	//
+}
+
+func (this RolesApp) delUser(w http.ResponseWriter, r *http.Request) {
+	//
 }

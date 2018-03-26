@@ -41,8 +41,9 @@ type roleRow struct {
 	RoleId    int64  `json:"0"`
 	RoleName  string `json:"1"`
 	RoleCodes string `json:"2"`
-	EditLink  string `json:"3"`
-	DelLink   string `json:"4"`
+	Members   int    `json:"3"`
+	EditLink  string `json:"4"`
+	DelLink   string `json:"5"`
 }
 
 type roleDefine struct {
@@ -103,8 +104,22 @@ func (this RolesApp) list(w http.ResponseWriter, r *http.Request) {
 		Data []roleRow `json:"data"`
 	}
 	//Return JSON Data;
-	sql := "SELECT id, role_name, role_codes FROM core_roles"
-
+	sql := `SELECT
+		id,
+		role_name,
+		role_codes,
+		ifnull(a.members, 0) AS members
+	FROM
+		core_roles
+	LEFT JOIN (
+		SELECT
+			role_id,
+			count(1) AS members
+		FROM
+			core_users
+		GROUP BY
+			role_id
+	) a ON core_roles.id = a.role_id`
 	row, err := core.DB.Query(sql)
 	if err != nil {
 		if core.Conf.Debug {
@@ -117,7 +132,7 @@ func (this RolesApp) list(w http.ResponseWriter, r *http.Request) {
 	urs := make([]roleRow, 0)
 	for row.Next() {
 		ur := roleRow{}
-		err = row.Scan(&ur.RoleId, &ur.RoleName, &ur.RoleCodes)
+		err = row.Scan(&ur.RoleId, &ur.RoleName, &ur.RoleCodes, &ur.Members)
 		if err != nil {
 			w.Write([]byte(nullRet))
 			return

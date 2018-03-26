@@ -22,8 +22,13 @@ package apps
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"tinybi/core"
 	"tinybi/webcore"
 )
@@ -36,6 +41,13 @@ type roleRow struct {
 	RoleId    int64  `json:"0"`
 	RoleName  string `json:"1"`
 	RoleCodes string `json:"2"`
+	EditLink  string `json:"3"`
+	DelLink   string `json:"4"`
+}
+
+type roleDefine struct {
+	Code        string `json:"code"`
+	Description string `json:"description"`
 }
 
 func (this RolesApp) Dispatch(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +59,15 @@ func (this RolesApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			//Super Administrators can see all tasks;
 			this.list(w, r)
 			break
+		case "add":
+			//Show "Add" page
+			this.addPage(w, r)
+			break
+		case "edit":
+			//Show "Edit" page
+			this.editPage(w, r)
+			break
+
 		default:
 			//Show WEB page;
 			this.showPage(w, r)
@@ -55,11 +76,14 @@ func (this RolesApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 		webcore.AclCheckRedirect(w, r, "SYSTEM", "/login.html")
 		switch r.URL.Query().Get("act") {
-		case "addRole":
-			this.addUser(w, r)
+		case "add":
+			this.add(w, r)
 			break
-		case "delRole":
-			this.delUser(w, r)
+		case "edit":
+			this.edit(w, r)
+			break
+		case "del":
+			this.del(w, r)
 			break
 		}
 	}
@@ -98,6 +122,8 @@ func (this RolesApp) list(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(nullRet))
 			return
 		}
+		ur.EditLink = fmt.Sprintf("<p class='fa fa-edit'><a href='/roles.html?act=edit&id=%d'>Edit</a></p>", ur.RoleId)
+		ur.DelLink = fmt.Sprintf("<p class='fa fa-trash-o'><a href='/roles.html?act=del&id=%d'>Delete</a></p>", ur.RoleId)
 		urs = append(urs, ur)
 	}
 	fullRet.Data = urs
@@ -109,10 +135,211 @@ func (this RolesApp) list(w http.ResponseWriter, r *http.Request) {
 	w.Write(sret)
 }
 
-func (this RolesApp) addUser(w http.ResponseWriter, r *http.Request) {
-	//
+func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title       string
+		Role        roleRow
+		Act         string
+		Acls        []roleDefine
+		CheckedAcls []string
+		Info        struct {
+			Show    bool
+			Message string
+		}
+	}
+	//Load ACL definition from JSON file;
+	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
+	if err != nil {
+		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	err = json.Unmarshal(jsonStr, &Html.Acls)
+	if err != nil {
+		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Title = "New Role"
+	Html.Act = "add"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "role_manager_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
-func (this RolesApp) delUser(w http.ResponseWriter, r *http.Request) {
-	//
+func (this RolesApp) add(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title       string
+		Role        roleRow
+		Act         string
+		Acls        []roleDefine
+		CheckedAcls []string
+		Info        struct {
+			Show    bool
+			Message string
+		}
+	}
+	r.ParseForm()
+	Html.Role.RoleName = r.Form.Get("rolename")
+	Html.Role.RoleCodes = strings.Join(r.Form["permissions"], ",")
+	err := this.updateRole(&Html.Role)
+	if err != nil {
+		Html.Info.Show = true
+		Html.Info.Message = "Faile to save the role"
+
+		Html.Title = "New Role"
+		Html.Act = "add"
+		err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "role_manager_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		http.Redirect(w, r, "/roles.html", http.StatusFound)
+	}
+}
+
+func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title       string
+		Role        roleRow
+		Act         string
+		Acls        []roleDefine
+		CheckedAcls []string
+		Info        struct {
+			Show    bool
+			Message string
+		}
+	}
+	//Load role info;
+	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of roles.html?act=edit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	sql := "SELECT id, role_name, role_codes FROM core_roles WHERE id=?"
+	row, err := core.DB.Query(sql, roleId)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query SQL", err)
+		}
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	defer row.Close()
+	for row.Next() {
+		err = row.Scan(&Html.Role.RoleId, &Html.Role.RoleName, &Html.Role.RoleCodes)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+	}
+	Html.CheckedAcls = strings.Split(Html.Role.RoleCodes, ",")
+	//Load ACL definition from JSON file;
+	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
+	if err != nil {
+		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	err = json.Unmarshal(jsonStr, &Html.Acls)
+	if err != nil {
+		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Title = "Edit Role"
+	Html.Act = "edit"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "role_manager_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title       string
+		Role        roleRow
+		Act         string
+		Acls        []roleDefine
+		CheckedAcls []string
+		Info        struct {
+			Show    bool
+			Message string
+		}
+	}
+	//Load role info;
+	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of roles.html?act=edit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	sql := "SELECT id, role_name, role_codes FROM core_roles WHERE id=?"
+	row, err := core.DB.Query(sql, roleId)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query SQL", err)
+		}
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	defer row.Close()
+	for row.Next() {
+		err = row.Scan(&Html.Role.RoleId, &Html.Role.RoleName, &Html.Role.RoleCodes)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+	}
+	r.ParseForm()
+	Html.Role.RoleName = r.Form.Get("rolename")
+	Html.Role.RoleCodes = strings.Join(r.Form["permissions"], ",")
+	err = this.updateRole(&Html.Role)
+	if err != nil {
+		Html.Info.Show = true
+		Html.Info.Message = "Faile to save the role"
+		Html.Title = "Edit Role"
+		Html.Act = "edit"
+		err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "role_manager_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		http.Redirect(w, r, "/roles.html", http.StatusFound)
+	}
+}
+
+func (this RolesApp) del(w http.ResponseWriter, r *http.Request) {
+	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of roles.html?act=edit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	sql := "DELETE FROM core_roles WHERE id = ? "
+	_, err = core.DB.Exec(sql, roleId)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println("Fail to query SQL", err)
+		}
+	}
+	http.Redirect(w, r, "/roles.html", http.StatusFound)
+}
+
+func (this RolesApp) updateRole(role *roleRow) error {
+	if role == nil {
+		return errors.New("Illegal call")
+	}
+	sql := ""
+	var err error = nil
+	if role.RoleId == 0 {
+		sql = "INSERT INTO core_roles (role_name,role_codes) VALUES (?,?)"
+		_, err = core.DB.Query(sql, role.RoleName, role.RoleCodes)
+	} else {
+		sql = "UPDATE core_roles SET role_name=?, role_codes = ? WHERE id = ? "
+		_, err = core.DB.Query(sql, role.RoleName, role.RoleCodes, role.RoleId)
+	}
+	return err
 }

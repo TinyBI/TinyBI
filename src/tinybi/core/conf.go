@@ -38,6 +38,7 @@ type WebConf struct {
 	TemplatesPath   string   `json:"templates_path"`
 	PublicPath      string   `json:"public_path"`
 	MaxTasksPerUser int      `json:"max_tasks_per_user"`
+	AclDefinePath   string   `json:"acl_define_path"`
 }
 
 type SMTPConf struct {

@@ -7,7 +7,7 @@
 				<div class="col-lg-12">
 					<div class="panel panel-default">
 						<div class="panel-heading">
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#addRole">{{gettext "Create New Role"}}</button>
+                            <a class="btn btn-default" href="/roles.html?act=add">{{gettext "Create New Role"}}</a>
                         </div>
 						<div class="panel-body">
 							<table width="100%" class="table table-striped table-bordered table-hover" id="DataList">
@@ -16,43 +16,13 @@
                                         <th>{{gettext "Role ID"}}</th>
                                         <th>{{gettext "Role name"}}</th>
                                         <th>{{gettext "Role codes"}}</th>
+										<th>{{gettext "Edit"}}</th>
+										<th>{{gettext "Delete"}}</th>
                                     </tr>
                                 </thead>
 								<tbody>
 								</tbody>
 								</table>
-							<!-- Modal -->
-                            <div class="modal fade" id="addRole" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel">{{gettext "Create New User"}}</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form id="login" role="form" action="/roles.html?act=add" method="post">
-				                            <fieldset>
-												<div class="form-group">
-				                                    <input class="form-control" placeholder="Rolename" name="Rolename" type="text" autofocus required>
-				                                </div>
-				                                <div class="checkbox">
-				                                    <label>
-				                                        <input name="system" type="checkbox" value="System">System
-				                                    </label>
-				                                </div>
-											</fieldset>
-				                        </form>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">{{gettext "Close"}}</button>
-                                            <button type="button" class="btn btn-primary" onclick="document.getElementById('login').submit();return false">{{gettext "Submit"}}</button>
-                                        </div>
-                                    </div>
-                                    <!-- /.modal-content -->
-                                </div>
-                                <!-- /.modal-dialog -->
-                            </div>
-                            <!-- /.modal -->
 						</div>
 					</div>
 				</div>

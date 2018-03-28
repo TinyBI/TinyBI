@@ -22,6 +22,10 @@ package core
 
 import (
 	"database/sql"
+
+	"github.com/go-xorm/xorm"
 )
+
+var DBEngine *xorm.Engine
 
 var DB *sql.DB

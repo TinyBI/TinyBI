@@ -21,7 +21,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"io/ioutil"
@@ -33,6 +32,7 @@ import (
 	"tinybi/webcore"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
 )
 
 func main() {
@@ -75,15 +75,17 @@ func initApp(confPath string) {
 		log.Printf("Fail to load configuration from:%s\n", confPath)
 		log.Fatal(err)
 	}
-	core.DB, err = sql.Open(core.Conf.DB.Driver, core.Conf.DB.Connection)
+	//Use ORM instead of native DB Engine;
+	core.DBEngine, err = xorm.NewEngine(core.Conf.DB.Driver, core.Conf.DB.Connection)
 	if err != nil {
 		log.Println("Fail to connect to Database")
 		log.Fatal(err)
 	}
 	//core.DB.SetMaxIdleConns(100)
-	err = core.DB.Ping()
+	err = core.DBEngine.Ping()
 	if err != nil {
 		log.Println("Fail to connect to Database")
 		log.Fatal(err)
 	}
+	core.DB = core.DBEngine.DB().DB
 }

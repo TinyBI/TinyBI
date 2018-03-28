@@ -159,6 +159,7 @@ func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
+			Type    string
 			Message string
 		}
 	}
@@ -192,6 +193,7 @@ func (this RolesApp) add(w http.ResponseWriter, r *http.Request) {
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
+			Type    string
 			Message string
 		}
 	}
@@ -201,6 +203,7 @@ func (this RolesApp) add(w http.ResponseWriter, r *http.Request) {
 	err := this.updateRole(&Html.Role)
 	if err != nil {
 		Html.Info.Show = true
+		Html.Info.Type = "danger"
 		Html.Info.Message = "Faile to save the role"
 
 		Html.Title = "New Role"
@@ -223,6 +226,7 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
+			Type    string
 			Message string
 		}
 	}
@@ -281,6 +285,7 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
+			Type    string
 			Message string
 		}
 	}
@@ -314,6 +319,7 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 	err = this.updateRole(&Html.Role)
 	if err != nil {
 		Html.Info.Show = true
+		Html.Info.Type = "danger"
 		Html.Info.Message = "Faile to save the role"
 		Html.Title = "Edit Role"
 		Html.Act = "edit"
@@ -329,7 +335,7 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 func (this RolesApp) del(w http.ResponseWriter, r *http.Request) {
 	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		log.Printf("Illegal visit of roles.html?act=edit")
+		log.Printf("Illegal visit of roles.html?act=del")
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
 	}

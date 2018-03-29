@@ -83,12 +83,16 @@
 <script src="/public/js/moment.min.js"></script>
 <script>
 $(document).ready(function() {
-	var startTime=$('#starttime').val();
-	var startTimeStr=moment.unix(startTime).format("YYYY-MM-DD HH:mm:ss");
-	$('#starttime').val(startTimeStr);
-	var endTime=$('#endtime').val();
-	var endTimeStr=moment.unix(endTime).format("YYYY-MM-DD HH:mm:ss");
-	$('#endtime').val(endTimeStr);
+	{{if ne 0 .Period.StartTime }}
+		var startTime=$('#starttime').val();
+		var startTimeStr=moment.unix(startTime).format("YYYY-MM-DD HH:mm:ss");
+		$('#starttime').val(startTimeStr);
+	{{end}}
+	{{if ne 0 .Period.EndTime }}
+		var endTime=$('#endtime').val();
+		var endTimeStr=moment.unix(endTime).format("YYYY-MM-DD HH:mm:ss");
+		$('#endtime').val(endTimeStr);
+	{{end}}
 });
 </script>
 {{template "footer"}}

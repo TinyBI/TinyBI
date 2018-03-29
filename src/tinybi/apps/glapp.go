@@ -188,14 +188,30 @@ func (this GLApp) periodAdd(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	Html.Period.LastUpdated = time.Now()
-	_, err = core.DBEngine.Table("gl_periods").Insert(&Html.Period)
-	if err != nil {
-		if core.Conf.Debug {
-			log.Println(err)
+	if !Html.Info.Show {
+		//Check conflict period;
+		var dupPeriod models.GLPeriod
+		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).Get(&dupPeriod)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict period: "
+			Html.Info.Message += dupPeriod.PeriodName
+			Html.Info.Message += ", time span: "
+			Html.Info.Message += time.Unix(int64(dupPeriod.StartTime), 0).Format("2006-01-02 15:04:05")
+			Html.Info.Message += " to "
+			Html.Info.Message += time.Unix(int64(dupPeriod.EndTime), 0).Format("2006-01-02 15:04:05")
+		} else {
+			_, err = core.DBEngine.Table("gl_periods").Insert(&Html.Period)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the period"
+			}
 		}
-		Html.Info.Show = true
-		Html.Info.Type = "danger"
-		Html.Info.Message = "Fail to save the period"
 	}
 	if Html.Info.Show {
 		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_periods_editor.html").Execute(w, Html)
@@ -298,7 +314,26 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	Html.Period.LastUpdated = time.Now()
-	_, err = core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Update(&Html.Period)
+	if !Html.Info.Show {
+		//Check conflict period;
+		var dupPeriod models.GLPeriod
+		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).Get(&dupPeriod)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict period: "
+			Html.Info.Message += dupPeriod.PeriodName
+			Html.Info.Message += ", time span: "
+			Html.Info.Message += time.Unix(int64(dupPeriod.StartTime), 0).Format("2006-01-02 15:04:05")
+			Html.Info.Message += " to "
+			Html.Info.Message += time.Unix(int64(dupPeriod.EndTime), 0).Format("2006-01-02 15:04:05")
+		} else {
+			if err != nil && core.Conf.Debug {
+				log.Println(err)
+			}
+			_, err = core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Update(&Html.Period)
+		}
+	}
 	if err != nil {
 		if core.Conf.Debug {
 			log.Println(err)

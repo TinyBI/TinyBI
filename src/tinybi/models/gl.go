@@ -18,28 +18,26 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-package apps
+package models
 
 import (
-	"tinybi/webcore"
+	"time"
 )
 
-var WebRoutes map[string]webcore.WebApp
-
-func init() {
-	WebRoutes = make(map[string]webcore.WebApp)
-	loadRoutes()
+//General Ledgers;
+//Accounting Periods;
+type GLPeriod struct {
+	Id          int64     `xorm:"'id'"`
+	PeriodCode  string    `xorm:"'period_code'"`
+	PeriodName  string    `xorm:"'period_name'"`
+	Status      string    `xorm:"'status' default 'CLOSED'"`
+	Description string    `xorm:"'description'"`
+	StartTime   int       `xorm:"'start_time'"`
+	EndTime     int       `xorm:"'end_time'"`
+	LastUpdated time.Time `xorm:"'last_updated' default 'CURRENT_tIMESTAMP'"`
 }
 
-func loadRoutes() {
-	//Register web routes here;
-	WebRoutes["/"] = IndexApp{}
-	WebRoutes["/index.html"] = IndexApp{}
-	WebRoutes["/login.html"] = LoginApp{}
-	WebRoutes["/concurrentTasks.html"] = ConcurrentTasksApp{}
-	WebRoutes["/userProfile.html"] = UserProfileApp{}
-	WebRoutes["/users.html"] = UsersApp{}
-	WebRoutes["/roles.html"] = RolesApp{}
-	WebRoutes["/gl.html"] = GLApp{}
-	WebRoutes["/API"] = ApiApp{}
+type GLModel struct {
+	//Operation Model;
+	//Business Operations;
 }

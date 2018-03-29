@@ -23,7 +23,6 @@ package apps
 import (
 	"log"
 	"net/http"
-	"tinybi/core"
 	"tinybi/webcore"
 )
 
@@ -59,9 +58,6 @@ func (this IndexApp) setUILang(w http.ResponseWriter, r *http.Request) {
 
 func (this IndexApp) showPage(w http.ResponseWriter, r *http.Request) {
 	lang := webcore.GetUILang(w, r)
-	if core.Conf.Debug {
-		log.Println(lang)
-	}
 	webcore.AclCheckRedirect(w, r, "INDEX", "/login.html")
 	//Show Page;
 	err := webcore.GetTemplate(w, lang, "index.html").Execute(w, nil)

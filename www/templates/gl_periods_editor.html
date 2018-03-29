@@ -1,0 +1,94 @@
+{{template "header" .}}
+<script src="/public/js/datetimepicker_css.js"></script>
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext .Title}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="/gl.html?act=periods">{{gettext "Accounting Periods"}}</a>
+                        </div>
+						<div class="panel-body">
+						{{if .Info.Show }}
+						<div class="alert alert-{{ .Info.Type }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Info.Message}}
+                        </div>
+						{{end}}
+							<form id="profileForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Period.Id }}" method="post">
+								<fieldset>
+								    <div class="form-group">
+								        <input class="form-control" placeholder="Period Code" name="periodcode"
+								        type="text" value="{{ .Period.PeriodCode}}" autofocus required>
+								    </div>
+								    <div class="form-group">
+								        <input class="form-control" placeholder="Period Name" name="periodname"
+								        type="text" value="{{ .Period.PeriodName}}" autofocus required>
+								    </div>
+									<div class="form-group">
+                                            <label>Description</label>
+                                            <textarea class="form-control" name="description" rows="3">{{ .Period.Description }}</textarea>
+                                        </div>
+								    <div class="form-group">
+								        <h4>
+								            {{gettext "Time Span"}}
+								        </h4>
+								    </div>
+								    <div class="form-group">
+								        <div class="row">
+								            <div class="col-md-6">
+								                <div class="input-group">
+								                    <span class="input-group-addon">
+								                        <img src="/public/js/images2/cal.gif" onclick="javascript:NewCssCal ('starttime','yyyyMMdd','dropdown',true,'24',true)"
+								                        style="cursor:pointer" />
+								                    </span>
+								                    <input class="form-control" placeholder="Start Time" name="starttime"
+								                    id="starttime" type="text" value="{{ .Period.StartTime}}" autofocus required>
+								                </div>
+								            </div>
+								            <div class="col-md-6">
+								                <div class="input-group">
+								                    <span class="input-group-addon">
+								                        <img src="/public/js/images2/cal.gif" onclick="javascript:NewCssCal ('endtime','yyyyMMdd','dropdown',true,'24',true)"
+								                        style="cursor:pointer" />
+								                    </span>
+								                    <input class="form-control" placeholder="End Time" name="endtime" id="endtime"
+								                    type="text" value="{{ .Period.EndTime}}" autofocus required>
+								                </div>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="form-group">
+								        <select class="form-control" name="status">
+								            <option value="CLOSED" {{if eq "CLOSED" .Period.Status}}selected{{end}}>
+								                {{gettext "Closed"}}
+								            </option>
+								            <option value="OPENED" {{if eq "OPENED" .Period.Status}}selected{{end}}>
+								                {{gettext "Opened"}}
+								            </option>
+								        </select>
+								    </div>
+								    <a onclick="document.getElementById('profileForm').submit();return false"
+								    class="btn btn-lg btn-success btn-block">
+								        {{gettext "Submit"}}
+								    </a>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+				</div>
+</div>
+<script src="/public/js/moment.min.js"></script>
+<script>
+$(document).ready(function() {
+	var startTime=$('#starttime').val();
+	var startTimeStr=moment.unix(startTime).format("YYYY-MM-DD HH:mm:ss");
+	$('#starttime').val(startTimeStr);
+	var endTime=$('#endtime').val();
+	var endTimeStr=moment.unix(endTime).format("YYYY-MM-DD HH:mm:ss");
+	$('#endtime').val(endTimeStr);
+});
+</script>
+{{template "footer"}}

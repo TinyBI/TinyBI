@@ -29,11 +29,11 @@ import (
 
 //Core Business Settings;
 type Settings struct {
-	Id          int64     `xorm:"'id'"`
-	Code        string    `xorm:"'code'"`
-	Description string    `xorm:"'description'"`
-	Value       string    `xorm:"'value'"`
-	LastUpdated time.Time `xorm:"'last_updated' default 'CURRENT_tIMESTAMP'"`
+	Id          int64     `xorm:"'id'" json:"0"`
+	Code        string    `xorm:"'code'" json:"1"`
+	Description string    `xorm:"'description'" json:"2"`
+	Value       string    `xorm:"'value'" json:"3"`
+	LastUpdated time.Time `xorm:"'last_updated' default 'CURRENT_tIMESTAMP'" json:"4"`
 }
 
 type SettingsModel struct {

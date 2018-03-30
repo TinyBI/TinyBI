@@ -191,7 +191,7 @@ func (this GLApp) periodAdd(w http.ResponseWriter, r *http.Request) {
 	if !Html.Info.Show {
 		//Check conflict period;
 		var dupPeriod models.GLPeriod
-		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).Get(&dupPeriod)
+		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).And("id!=?", Html.Period.Id).Get(&dupPeriod)
 		if ok {
 			Html.Info.Show = true
 			Html.Info.Type = "danger"
@@ -300,8 +300,8 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		Html.Period.EndTime = int(tm.Unix())
 	}
-	Html.Title = "Add Period"
-	Html.Act = "periodAdd"
+	Html.Title = "Edit Period"
+	Html.Act = "periodEdit"
 	if Html.Period.PeriodCode == "" || Html.Period.PeriodName == "" {
 		Html.Info.Show = true
 		Html.Info.Type = "danger"
@@ -317,7 +317,7 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 	if !Html.Info.Show {
 		//Check conflict period;
 		var dupPeriod models.GLPeriod
-		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).Get(&dupPeriod)
+		ok, err := core.DBEngine.Table("gl_periods").Where("start_time<=?", Html.Period.EndTime).And("end_time>=?", Html.Period.StartTime).And("id!=?", Html.Period.Id).Get(&dupPeriod)
 		if ok {
 			Html.Info.Show = true
 			Html.Info.Type = "danger"
@@ -332,15 +332,15 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			_, err = core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Update(&Html.Period)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the period"
+			}
 		}
-	}
-	if err != nil {
-		if core.Conf.Debug {
-			log.Println(err)
-		}
-		Html.Info.Show = true
-		Html.Info.Type = "danger"
-		Html.Info.Message = "Fail to save the period"
 	}
 	if Html.Info.Show {
 		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_periods_editor.html").Execute(w, Html)

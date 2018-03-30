@@ -209,7 +209,7 @@ func (this *Task) AsyncRun(t *Task) {
 //Task Schedule;
 func (this *TaskMaster) Run() {
 	for {
-		if len(this.Tasks) == 0 {
+		if len(this.Tasks) > 0 {
 			for _, t := range this.Tasks {
 				if t.Status == TaskStatusPending {
 					t.AsyncRun(t)

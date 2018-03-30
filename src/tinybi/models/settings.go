@@ -58,7 +58,7 @@ func (this *SettingsModel) Get(code string) *Settings {
 	settings, ok := this.cache[code]
 	if !ok {
 		//Try to get the data from DB;
-		ok, err := core.DBEngine.Table("core_settings").Where("code=?", code).Get(settings)
+		_, err := core.DBEngine.Table("core_settings").Where("code=?", code).Get(settings)
 		if err != nil && core.Conf.Debug {
 			log.Println(err)
 			return nil
@@ -96,6 +96,13 @@ func (this *SettingsModel) Set(settings *Settings) error {
 	return nil
 }
 
-func (this *SettingsModel) List() []*Settings {
-	return this.cache
+func (this *SettingsModel) List() []Settings {
+	list := make([]Settings, 0)
+	for _, s := range this.cache {
+		setting := Settings{Id: s.Id, Code: s.Code,
+			Description: s.Description, Value: s.Value,
+			LastUpdated: s.LastUpdated}
+		list = append(list, setting)
+	}
+	return list
 }

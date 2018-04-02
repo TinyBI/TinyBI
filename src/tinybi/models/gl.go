@@ -27,6 +27,8 @@ import (
 	"log"
 	"time"
 	"tinybi/core"
+
+	"github.com/jinzhu/now"
 )
 
 //General Ledgers;
@@ -59,6 +61,7 @@ type GLModel struct {
 }
 
 //Init master data;
+//Accounts;
 func (this GLModel) InitMasterAccounts(path string) error {
 	if path == "" {
 		return errors.New("Empty path when call GLModel::InitMaster")
@@ -93,4 +96,44 @@ func (this GLModel) InitMasterAccounts(path string) error {
 		}
 	}
 	return nil
+}
+
+//Accounting Periods;
+func (this GLModel) InitMasterPeriods() {
+	//Init periods for whole year;
+	dater := now.New(time.Now())
+	startTime := dater.BeginningOfYear()
+	endTime := dater.EndOfYear()
+	curTime := startTime
+	for curTime.Unix() < endTime.Unix() {
+		curEnd := curTime.AddDate(0, 1, 0)
+		glPeriod := new(GLPeriod)
+		total, err := core.DBEngine.Table("gl_periods").Where("start_time=?", curTime.Unix()).And("end_time=?", curEnd.Unix()).Count(glPeriod)
+		if total > 0 {
+			curTime = curEnd
+			continue
+		}
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			curTime = curEnd
+			continue
+		}
+		glPeriod.StartTime = int(curTime.Unix())
+		glPeriod.EndTime = int(curEnd.Unix())
+		glPeriod.PeriodCode = curTime.Format("2006-01")
+		glPeriod.PeriodName = curTime.Format("2006-01")
+		glPeriod.Description = curTime.Format("2006-01")
+		glPeriod.Description += " Accounting Period"
+		glPeriod.Status = "CLOSED"
+		glPeriod.LastUpdated = time.Now()
+		_, err = core.DBEngine.Table("gl_periods").Insert(glPeriod)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+		}
+		curTime = curEnd
+	}
 }

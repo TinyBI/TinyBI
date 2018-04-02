@@ -104,4 +104,5 @@ func initData() {
 			log.Println(err)
 		}
 	}
+	glModel.InitMasterPeriods()
 }

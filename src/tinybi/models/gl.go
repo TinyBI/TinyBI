@@ -21,10 +21,16 @@
 package models
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"log"
 	"time"
+	"tinybi/core"
 )
 
 //General Ledgers;
+//Initial master data is in data/gl.json
 //Accounting Periods;
 type GLPeriod struct {
 	Id          int64     `xorm:"'id'"`
@@ -37,7 +43,54 @@ type GLPeriod struct {
 	LastUpdated time.Time `xorm:"'last_updated' default 'CURRENT_tIMESTAMP'"`
 }
 
+//Accounts;
+//e.g. Assets, Liabilities...
+type GLAccount struct {
+	Id          int64     `xorm:"'id'" json:"_"`
+	AccountCode string    `xorm:"'account_code'" json:"account_code"`
+	AccountName string    `xorm:"'account_name'" json:"account_name"`
+	Description string    `xorm:"'description'" json:"description"`
+	LastUpdated time.Time `xorm:"'last_updated' default 'CURRENT_tIMESTAMP'" json:"_"`
+}
+
 type GLModel struct {
 	//Operation Model;
 	//Business Operations;
+}
+
+//Init master data;
+func (this GLModel) InitMasterAccounts(path string) error {
+	if path == "" {
+		return errors.New("Empty path when call GLModel::InitMaster")
+	}
+	//Determine whether we should init master data;
+	account := new(GLAccount)
+	total, err := core.DBEngine.Table("gl_accounts").Count(account)
+	if total > 0 {
+		return errors.New("The Ledger Accounts has already been initialized")
+	}
+	if err != nil {
+		return err
+	}
+	var accountsMaster struct {
+		Table string      `json:"table"`
+		Data  []GLAccount `json:"data"`
+	}
+	jsonStr, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Printf("Fail to load master data from:%s\n", path)
+		return err
+	}
+	err = json.Unmarshal(jsonStr, &accountsMaster)
+	if err != nil {
+		log.Printf("Fail to load master data from:%s\n", path)
+		return err
+	}
+	for _, account := range accountsMaster.Data {
+		_, err := core.DBEngine.Table(accountsMaster.Table).Insert(&account)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

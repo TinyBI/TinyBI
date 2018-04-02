@@ -50,10 +50,15 @@ type AppConf struct {
 	SMTP SMTPConf `json:"smtp"`
 }
 
+type DataConf struct {
+	MasterPath string `json:"master_path"`
+}
+
 type Configuration struct {
-	App   AppConf `json:"app"`
-	DB    DbConf  `json:"db"`
-	Debug bool    `json:"debug"`
+	App   AppConf  `json:"app"`
+	DB    DbConf   `json:"db"`
+	Data  DataConf `json:"data"`
+	Debug bool     `json:"debug"`
 }
 
 var Conf Configuration

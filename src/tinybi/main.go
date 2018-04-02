@@ -26,9 +26,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"tinybi/apps"
 	"tinybi/core"
+	"tinybi/models"
 	"tinybi/webcore"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -42,6 +44,7 @@ func main() {
 	if core.Conf.Debug {
 		log.Println(core.Conf)
 	}
+	initData()
 	webcore.InitTemplate()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.App.Web.Host, nil))
@@ -88,4 +91,17 @@ func initApp(confPath string) {
 		log.Fatal(err)
 	}
 	core.DB = core.DBEngine.DB().DB
+}
+
+func initData() {
+	//Init master data for modules;
+	//General Ledger;
+	glModel := models.GLModel{}
+	glAccountPath := filepath.Join(core.Conf.Data.MasterPath, "gl_accounts.json")
+	err := glModel.InitMasterAccounts(glAccountPath)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+	}
 }

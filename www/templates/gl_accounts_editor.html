@@ -1,0 +1,45 @@
+{{template "header" .}}
+<script src="/public/js/datetimepicker_css.js"></script>
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext .Title}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="/gl.html?act=accounts">{{gettext "Accounts"}}</a>
+                        </div>
+						<div class="panel-body">
+						{{if .Info.Show }}
+						<div class="alert alert-{{ .Info.Type }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Info.Message}}
+                        </div>
+						{{end}}
+							<form id="profileForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Account.Id }}" method="post">
+								<fieldset>
+								    <div class="form-group">
+								        <input class="form-control" placeholder="Account Code" name="accountcode"
+								        type="text" value="{{ .Account.AccountCode}}" autofocus required>
+								    </div>
+								    <div class="form-group">
+								        <input class="form-control" placeholder="Account Name" name="accountname"
+								        type="text" value="{{ .Account.AccountName}}" autofocus required>
+								    </div>
+									<div class="form-group">
+                                            <label>Description</label>
+                                            <textarea class="form-control" name="description" rows="3">{{ .Account.Description }}</textarea>
+                                        </div>
+								    <a onclick="document.getElementById('profileForm').submit();return false"
+								    class="btn btn-lg btn-success btn-block">
+								        {{gettext "Submit"}}
+								    </a>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+				</div>
+</div>
+<script src="/public/js/moment.min.js"></script>
+{{template "footer"}}

@@ -57,6 +57,23 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_PERIODS_W", "/login.html")
 			this.periodEditPage(w, r)
 			break
+		case "accounts":
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_R", "/login.html")
+			this.accountPage(w, r)
+			break
+		case "accountsList":
+			//AJAX Method, list all accounts;
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_R", "/login.html")
+			this.accountList(w, r)
+			break
+		case "accountAdd":
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
+			this.accountAddPage(w, r)
+			break
+		case "accountEdit":
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
+			this.accountEditPage(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -71,6 +88,14 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 		case "periodEdit":
 			webcore.AclCheckRedirect(w, r, "GL_PERIODS_W", "/login.html")
 			this.periodEdit(w, r)
+			break
+		case "accountAdd":
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
+			this.accountAdd(w, r)
+			break
+		case "accountEdit":
+			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
+			this.accountEdit(w, r)
 			break
 		}
 	}
@@ -349,5 +374,234 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		this.periodPage(w, r)
+	}
+}
+
+func (this GLApp) accountPage(w http.ResponseWriter, r *http.Request) {
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_accounts.html").Execute(w, nil)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) accountList(w http.ResponseWriter, r *http.Request) {
+	nullRet := `{"data":[]}`
+	var fullRet struct {
+		Data []struct {
+			AccountCode string `json:"0"`
+			AccountName string `json:"1"`
+			Description string `json:"2"`
+			EditLink    string `json:"3"`
+		} `json:"data"`
+	}
+	var accounts []models.GLAccount
+	err := core.DBEngine.Table("gl_accounts").Find(&accounts)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	for _, account := range accounts {
+		var accountRow struct {
+			AccountCode string `json:"0"`
+			AccountName string `json:"1"`
+			Description string `json:"2"`
+			EditLink    string `json:"3"`
+		}
+		accountRow.AccountCode = account.AccountCode
+		accountRow.AccountName = account.AccountName
+		accountRow.Description = account.Description
+		accountRow.EditLink = fmt.Sprintf("<p class='fa fa-edit'><a href='/gl.html?act=accountEdit&id=%d'>Edit</a></P>", account.Id)
+		fullRet.Data = append(fullRet.Data, accountRow)
+	}
+	sret, err := json.Marshal(fullRet)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	w.Write(sret)
+}
+
+func (this GLApp) accountAddPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title   string
+		Account models.GLAccount
+		Act     string
+		Info    struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	Html.Title = "Add Account"
+	Html.Act = "accountAdd"
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_accounts_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) accountAdd(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title   string
+		Account models.GLAccount
+		Act     string
+		Info    struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	r.ParseForm()
+	Html.Account.AccountCode = r.Form.Get("accountcode")
+	Html.Account.AccountName = r.Form.Get("accountname")
+	Html.Account.Description = r.Form.Get("description")
+	Html.Title = "Add Account"
+	Html.Act = "accountAdd"
+	if Html.Account.AccountCode == "" || Html.Account.AccountName == "" {
+		Html.Info.Show = true
+		Html.Info.Type = "danger"
+		Html.Info.Message = "You must input the account code and name"
+	}
+	Html.Account.LastUpdated = time.Now()
+	if !Html.Info.Show {
+		//Check conflict account;
+		var dupAccount models.GLAccount
+		ok, err := core.DBEngine.Table("gl_accounts").Where("account_code=?", Html.Account.AccountCode).And("id!=?", Html.Account.Id).Get(&dupAccount)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict account: "
+			Html.Info.Message += dupAccount.AccountName
+			Html.Info.Message += " ,code: "
+			Html.Info.Message += dupAccount.AccountCode
+		} else {
+			_, err = core.DBEngine.Table("gl_accounts").Insert(&Html.Account)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the account"
+			}
+		}
+	}
+	if Html.Info.Show {
+		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_accounts_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		this.accountPage(w, r)
+	}
+}
+
+func (this GLApp) accountEditPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title   string
+		Account models.GLAccount
+		Act     string
+		Info    struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	//Load account info;
+	accountId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=accountEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	ok, err := core.DBEngine.Table("gl_accounts").Where("id = ?", accountId).Get(&Html.Account)
+	if !ok {
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=accountEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Title = "Edit Account"
+	Html.Act = "accountEdit"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_accounts_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) accountEdit(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title   string
+		Account models.GLAccount
+		Act     string
+		Info    struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	//Load account info;
+	accountId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=accountEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	ok, err := core.DBEngine.Table("gl_accounts").Where("id = ?", accountId).Get(&Html.Account)
+	if !ok {
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=accountEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	r.ParseForm()
+	Html.Account.AccountCode = r.Form.Get("accountcode")
+	Html.Account.AccountName = r.Form.Get("accountname")
+	Html.Account.Description = r.Form.Get("description")
+	Html.Title = "Edit Accounts"
+	Html.Act = "accountEdit"
+	if Html.Account.AccountCode == "" || Html.Account.AccountName == "" {
+		Html.Info.Show = true
+		Html.Info.Type = "danger"
+		Html.Info.Message = "You must input the account code and name"
+	}
+	Html.Account.LastUpdated = time.Now()
+	if !Html.Info.Show {
+		//Check conflict account;
+		var dupAccount models.GLAccount
+		ok, err := core.DBEngine.Table("gl_accounts").Where("account_code=?", Html.Account.AccountCode).And("id!=?", Html.Account.Id).Get(&dupAccount)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict account: "
+			Html.Info.Message += dupAccount.AccountName
+			Html.Info.Message += " ,code: "
+			Html.Info.Message += dupAccount.AccountCode
+		} else {
+			if err != nil && core.Conf.Debug {
+				log.Println(err)
+			}
+			_, err = core.DBEngine.Table("gl_accounts").Where("id = ?", accountId).Update(&Html.Account)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the account"
+			}
+		}
+	}
+	if Html.Info.Show {
+		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_accounts_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		this.accountPage(w, r)
 	}
 }

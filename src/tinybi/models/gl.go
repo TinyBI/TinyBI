@@ -166,7 +166,7 @@ func (this GLModel) InitMasterPeriods() {
 	for curTime.Unix() < endTime.Unix() {
 		curEnd := curTime.AddDate(0, 1, 0)
 		glPeriod := new(GLPeriod)
-		total, err := core.DBEngine.Table("gl_periods").Where("start_time=?", curTime.Unix()).And("end_time=?", curEnd.Unix()).Count(glPeriod)
+		total, err := core.DBEngine.Table("gl_periods").Where("start_time=?", curTime.Unix()).And("end_time=?", curEnd.Unix()-1).Count(glPeriod)
 		if total > 0 {
 			curTime = curEnd
 			continue

@@ -19,7 +19,7 @@
                                         <th>{{gettext "Description"}}</th>
 										<th>{{gettext "Start Time"}}</th>
 										<th>{{gettext "End Time"}}</th>
-										<th>{{gettext "Edit"}}</th>
+										<th>{{gettext "Status"}}</th>
                                     </tr>
                                 </thead>
 								<tbody>
@@ -37,8 +37,24 @@ $(document).ready(function() {
     $('#DataList').DataTable( {
         "ajax": '/gl.html?act=periodsList',
 		"order": [[ 0, "desc" ]],
-		"responsive": true
+		"responsive": true,
+		"fnDrawCallback": function() {
+            $('.periodStatus').bootstrapToggle({
+      			on: '{{gettext "Opened"}}',
+      			off: '{{gettext "Closed"}}'
+    		});
+        },
     } );
 } );
+</script>
+<script>
+function openPeriod(eid,id){
+	$.get("/gl.html?act=periodOpen&id="+id, function(result){
+		var changed=false;
+		if(result!="1"){
+			alert("{{gettext "Fail to open/close the period"}}");
+		}
+ 	});
+}
 </script>
 {{template "footer"}}

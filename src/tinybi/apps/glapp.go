@@ -57,6 +57,10 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_PERIODS_W", "/login.html")
 			this.periodEditPage(w, r)
 			break
+		case "periodOpen":
+			webcore.AclCheckRedirect(w, r, "GL_PERIODS_W", "/login.html")
+			this.periodOpen(w, r)
+			break
 		case "accounts":
 			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_R", "/login.html")
 			this.accountPage(w, r)
@@ -168,7 +172,12 @@ func (this GLApp) periodList(w http.ResponseWriter, r *http.Request) {
 		periodRow.Description = period.Description
 		periodRow.StartTime = time.Unix(int64(period.StartTime), 0).Format("2006-01-02 15:04:05")
 		periodRow.EndTime = time.Unix(int64(period.EndTime), 0).Format("2006-01-02 15:04:05")
-		periodRow.EditLink = fmt.Sprintf("<p class='fa fa-edit'><a href='/gl.html?act=periodEdit&id=%d'>Edit</a></P>", period.Id)
+		//periodRow.EditLink = fmt.Sprintf("<p class='fa fa-edit'><a href='/gl.html?act=periodEdit&id=%d'>Edit</a></P>", period.Id)
+		checked := ""
+		if period.Status == "OPENED" {
+			checked = "checked"
+		}
+		periodRow.EditLink = fmt.Sprintf("<input class='periodStatus' type='checkbox' data-toggle='toggle' id='period%d' onchange=\"openPeriod('#period%d',%d)\" %s >", period.Id, period.Id, period.Id, checked)
 		fullRet.Data = append(fullRet.Data, periodRow)
 	}
 	sret, err := json.Marshal(fullRet)
@@ -384,6 +393,39 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 	} else {
 		this.periodPage(w, r)
 	}
+}
+
+func (this GLApp) periodOpen(w http.ResponseWriter, r *http.Request) {
+	periodId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=periodOpen")
+		w.Write([]byte("0"))
+		return
+	}
+	var period models.GLPeriod
+	ok, err := core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Get(&period)
+	if !ok {
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=periodOpen")
+		w.Write([]byte("0"))
+		return
+	}
+	if period.Status == "OPENED" {
+		period.Status = "CLOSED"
+	} else {
+		period.Status = "OPENED"
+	}
+	_, err = core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Update(&period)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		w.Write([]byte("0"))
+		return
+	}
+	w.Write([]byte("1"))
 }
 
 func (this GLApp) accountPage(w http.ResponseWriter, r *http.Request) {

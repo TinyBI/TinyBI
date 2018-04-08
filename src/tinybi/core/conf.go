@@ -55,10 +55,11 @@ type DataConf struct {
 }
 
 type Configuration struct {
-	App   AppConf  `json:"app"`
-	DB    DbConf   `json:"db"`
-	Data  DataConf `json:"data"`
-	Debug bool     `json:"debug"`
+	App      AppConf  `json:"app"`
+	DB       DbConf   `json:"db"`
+	Data     DataConf `json:"data"`
+	TimeZone string   `json:"time_zone"`
+	Debug    bool     `json:"debug"`
 }
 
 var Conf Configuration

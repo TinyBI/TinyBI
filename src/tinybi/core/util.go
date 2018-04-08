@@ -21,6 +21,7 @@
 package core
 
 import (
+	"log"
 	"math/rand"
 	"time"
 )
@@ -40,6 +41,34 @@ func RandomString(strlen int) string {
 	return string(result)
 }
 
-func Now() string {
-	return time.Now().Format("2006-01-02 15:04:05")
+func UnixTime(str string) int {
+	if str == "" {
+		return 0
+	}
+	tm, err := time.Parse("2006-01-02 15:04:05", str)
+	if err != nil {
+		return 0
+	}
+	local, err := time.LoadLocation(Conf.TimeZone)
+	if err != nil {
+		if Conf.Debug {
+			log.Println(err)
+		}
+		return int(tm.Unix())
+	}
+	return int(tm.In(local).Unix())
+}
+
+func FromUnixTime(t int) string {
+	if t == 0 {
+		return "1970-01-01 00:00:00"
+	}
+	local, err := time.LoadLocation(Conf.TimeZone)
+	if err != nil {
+		if Conf.Debug {
+			log.Println(err)
+		}
+		return time.Unix(int64(t), 0).Format("2006-01-02 15:04:05")
+	}
+	return time.Unix(int64(t), 0).In(local).Format("2006-01-02 15:04:05")
 }

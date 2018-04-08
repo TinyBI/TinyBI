@@ -1,0 +1,143 @@
+{{template "header" .}}
+<script src="/public/js/datetimepicker_css.js"></script>
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext .Title}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="/gl.html?act=sobs">{{gettext "Set of books"}}</a>
+                        </div>
+						<div class="panel-body">
+						{{if .Info.Show }}
+						<div class="alert alert-{{ .Info.Type }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Info.Message}}
+                        </div>
+						{{end}}
+							<form id="profileForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Sob.Id }}" method="post">
+								<fieldset>
+									<label>{{gettext "Name"}}</label>
+								    <div class="form-group">
+								        <input class="form-control" placeholder="Name" name="sobname"
+								        type="text" value="{{ .Sob.SobName}}" autofocus required>
+								    </div>
+								    <div class="form-group">
+									<label>{{gettext "Currency"}}</label>
+								    <select name="currencycode" class="form-control">
+										<option value="USD" {{if eq .Sob.CurrencyCode "USD" }} selected="selected" {{end}}>{{gettext "United States Dollars"}}</option>
+										<option value="EUR" {{if eq .Sob.CurrencyCode "EUR" }} selected="selected" {{end}}>{{gettext "Euro"}}</option>
+										<option value="GBP" {{if eq .Sob.CurrencyCode "GBP" }} selected="selected" {{end}}>{{gettext "United Kingdom Pounds"}}</option>
+										<option value="DZD" {{if eq .Sob.CurrencyCode "BZD" }} selected="selected" {{end}}>{{gettext "Algeria Dinars"}}</option>
+										<option value="ARP" {{if eq .Sob.CurrencyCode "ARP" }} selected="selected" {{end}}>{{gettext "Argentina Pesos"}}</option>
+										<option value="AUD" {{if eq .Sob.CurrencyCode "AUD" }} selected="selected" {{end}}>{{gettext "Australia Dollars"}}</option>
+										<option value="ATS" {{if eq .Sob.CurrencyCode "ATS" }} selected="selected" {{end}}>{{gettext "Austria Schillings"}}</option>
+										<option value="BSD" {{if eq .Sob.CurrencyCode "BSD" }} selected="selected" {{end}}>{{gettext "Bahamas Dollars"}}</option>
+										<option value="BBD" {{if eq .Sob.CurrencyCode "BBD" }} selected="selected" {{end}}>{{gettext "Barbados Dollars"}}</option>
+										<option value="BEF" {{if eq .Sob.CurrencyCode "BEF" }} selected="selected" {{end}}>{{gettext "Belgium Francs"}}</option>
+										<option value="BMD" {{if eq .Sob.CurrencyCode "BMD" }} selected="selected" {{end}}>{{gettext "Bermuda Dollars"}}</option>
+										<option value="BRR" {{if eq .Sob.CurrencyCode "BPR" }} selected="selected" {{end}}>{{gettext "Brazil Real"}}</option>
+										<option value="BGL" {{if eq .Sob.CurrencyCode "BGL" }} selected="selected" {{end}}>{{gettext "Bulgaria Lev"}}</option>
+										<option value="CAD" {{if eq .Sob.CurrencyCode "CAD" }} selected="selected" {{end}}>{{gettext "Canada Dollars"}}</option>
+										<option value="CLP" {{if eq .Sob.CurrencyCode "CLP" }} selected="selected" {{end}}>{{gettext "Chile Pesos"}}</option>
+										<option value="CNY" {{if eq .Sob.CurrencyCode "CNY" }} selected="selected" {{end}}>{{gettext "China Yuan Renmimbi"}}</option>
+										<option value="CYP" {{if eq .Sob.CurrencyCode "CYP" }} selected="selected" {{end}}>{{gettext "Cyprus Pounds"}}</option>
+										<option value="CSK" {{if eq .Sob.CurrencyCode "CSK" }} selected="selected" {{end}}>{{gettext "Czech Republic Koruna"}}</option>
+										<option value="DKK" {{if eq .Sob.CurrencyCode "DKK" }} selected="selected" {{end}}>{{gettext "Denmark Kroner"}}</option>
+										<option value="NLG" {{if eq .Sob.CurrencyCode "NLG" }} selected="selected" {{end}}>{{gettext "Dutch Guilders"}}</option>
+										<option value="XCD" {{if eq .Sob.CurrencyCode "XCD" }} selected="selected" {{end}}>{{gettext "Eastern Caribbean Dollars"}}</option>
+										<option value="EGP" {{if eq .Sob.CurrencyCode "EGP" }} selected="selected" {{end}}>{{gettext "Egypt Pounds"}}</option>
+										<option value="FJD" {{if eq .Sob.CurrencyCode "FJD" }} selected="selected" {{end}}>{{gettext "Fiji Dollars"}}</option>
+										<option value="FIM" {{if eq .Sob.CurrencyCode "FIM" }} selected="selected" {{end}}>{{gettext "Finland Markka"}}</option>
+										<option value="FRF" {{if eq .Sob.CurrencyCode "FRF" }} selected="selected" {{end}}>{{gettext "France Francs"}}</option>
+										<option value="DEM" {{if eq .Sob.CurrencyCode "DEM" }} selected="selected" {{end}}>{{gettext "Germany Deutsche Marks"}}</option>
+										<option value="XAU" {{if eq .Sob.CurrencyCode "XAU" }} selected="selected" {{end}}>{{gettext "Gold Ounces"}}</option>
+										<option value="GRD" {{if eq .Sob.CurrencyCode "GRD" }} selected="selected" {{end}}>{{gettext "Greece Drachmas"}}</option>
+										<option value="HKD" {{if eq .Sob.CurrencyCode "HKD" }} selected="selected" {{end}}>{{gettext "Hong Kong Dollars"}}</option>
+										<option value="HUF" {{if eq .Sob.CurrencyCode "HUF" }} selected="selected" {{end}}>{{gettext "Hungary Forint"}}</option>
+										<option value="ISK" {{if eq .Sob.CurrencyCode "ISK" }} selected="selected" {{end}}>{{gettext "Iceland Krona"}}</option>
+										<option value="INR" {{if eq .Sob.CurrencyCode "INR" }} selected="selected" {{end}}>{{gettext "India Rupees"}}</option>
+										<option value="IDR" {{if eq .Sob.CurrencyCode "IDR" }} selected="selected" {{end}}>{{gettext "Indonesia Rupiah"}}</option>
+										<option value="IEP" {{if eq .Sob.CurrencyCode "IEP" }} selected="selected" {{end}}>{{gettext "Ireland Punt"}}</option>
+										<option value="ILS" {{if eq .Sob.CurrencyCode "ILS" }} selected="selected" {{end}}>{{gettext "Israel New Shekels"}}</option>
+										<option value="ITL" {{if eq .Sob.CurrencyCode "ITL" }} selected="selected" {{end}}>{{gettext "Italy Lira"}}</option>
+										<option value="JMD" {{if eq .Sob.CurrencyCode "JMD" }} selected="selected" {{end}}>{{gettext "Jamaica Dollars"}}</option>
+										<option value="JPY" {{if eq .Sob.CurrencyCode "JPY" }} selected="selected" {{end}}>{{gettext "Japan Yen"}}</option>
+										<option value="JOD" {{if eq .Sob.CurrencyCode "JOD" }} selected="selected" {{end}}>{{gettext "Jordan Dinar"}}</option>
+										<option value="KRW" {{if eq .Sob.CurrencyCode "KRW" }} selected="selected" {{end}}>{{gettext "Korea (South) Won"}}</option>
+										<option value="LBP" {{if eq .Sob.CurrencyCode "LBP" }} selected="selected" {{end}}>{{gettext "Lebanon Pounds"}}</option>
+										<option value="LUF" {{if eq .Sob.CurrencyCode "LUF" }} selected="selected" {{end}}>{{gettext "Luxembourg Francs"}}</option>
+										<option value="MYR" {{if eq .Sob.CurrencyCode "MYR" }} selected="selected" {{end}}>{{gettext "Malaysia Ringgit"}}</option>
+										<option value="MXP" {{if eq .Sob.CurrencyCode "MXP" }} selected="selected" {{end}}>{{gettext "Mexico Pesos"}}</option>
+										<option value="NLG" {{if eq .Sob.CurrencyCode "NLG" }} selected="selected" {{end}}>{{gettext "Netherlands Guilders"}}</option>
+										<option value="NZD" {{if eq .Sob.CurrencyCode "NZD" }} selected="selected" {{end}}>{{gettext "New Zealand Dollars"}}</option>
+										<option value="NOK" {{if eq .Sob.CurrencyCode "NOK" }} selected="selected" {{end}}>{{gettext "Norway Kroner"}}</option>
+										<option value="PKR" {{if eq .Sob.CurrencyCode "PKR" }} selected="selected" {{end}}>{{gettext "Pakistan Rupees"}}</option>
+										<option value="XPD" {{if eq .Sob.CurrencyCode "XPD" }} selected="selected" {{end}}>{{gettext "Palladium Ounces"}}</option>
+										<option value="PHP" {{if eq .Sob.CurrencyCode "PHP" }} selected="selected" {{end}}>{{gettext "Philippines Pesos"}}</option>
+										<option value="XPT" {{if eq .Sob.CurrencyCode "XPT" }} selected="selected" {{end}}>{{gettext "Platinum Ounces"}}</option>
+										<option value="PLZ" {{if eq .Sob.CurrencyCode "PLZ" }} selected="selected" {{end}}>{{gettext "Poland Zloty"}}</option>
+										<option value="PTE" {{if eq .Sob.CurrencyCode "PTE" }} selected="selected" {{end}}>{{gettext "Portugal Escudo"}}</option>
+										<option value="ROL" {{if eq .Sob.CurrencyCode "ROL" }} selected="selected" {{end}}>{{gettext "Romania Leu"}}</option>
+										<option value="RUR" {{if eq .Sob.CurrencyCode "RUR" }} selected="selected" {{end}}>{{gettext "Russia Rubles"}}</option>
+										<option value="SAR" {{if eq .Sob.CurrencyCode "SAR" }} selected="selected" {{end}}>{{gettext "Saudi Arabia Riyal"}}</option>
+										<option value="XAG" {{if eq .Sob.CurrencyCode "XAG" }} selected="selected" {{end}}>{{gettext "Silver Ounces"}}</option>
+										<option value="SGD" {{if eq .Sob.CurrencyCode "SGD" }} selected="selected" {{end}}>{{gettext "Singapore Dollars"}}</option>
+										<option value="SKK" {{if eq .Sob.CurrencyCode "SKK" }} selected="selected" {{end}}>{{gettext "Slovakia Koruna"}}</option>
+										<option value="ZAR" {{if eq .Sob.CurrencyCode "ZAR" }} selected="selected" {{end}}>{{gettext "South Africa Rand"}}</option>
+										<option value="KRW" {{if eq .Sob.CurrencyCode "KRW" }} selected="selected" {{end}}>{{gettext "South Korea Won"}}</option>
+										<option value="ESP" {{if eq .Sob.CurrencyCode "ESP" }} selected="selected" {{end}}>{{gettext "Spain Pesetas"}}</option>
+										<option value="XDR" {{if eq .Sob.CurrencyCode "XDR" }} selected="selected" {{end}}>{{gettext "Special Drawing Right (IMF)"}}</option>
+										<option value="SDD" {{if eq .Sob.CurrencyCode "SDD" }} selected="selected" {{end}}>{{gettext "Sudan Dinar"}}</option>
+										<option value="SEK" {{if eq .Sob.CurrencyCode "SEK" }} selected="selected" {{end}}>{{gettext "Sweden Krona"}}</option>
+										<option value="CHF" {{if eq .Sob.CurrencyCode "CHF" }} selected="selected" {{end}}>{{gettext "Switzerland Francs"}}</option>
+										<option value="TWD" {{if eq .Sob.CurrencyCode "TWD" }} selected="selected" {{end}}>{{gettext "Taiwan Dollars"}}</option>
+										<option value="THB" {{if eq .Sob.CurrencyCode "THB" }} selected="selected" {{end}}>{{gettext "Thailand Baht"}}</option>
+										<option value="TTD" {{if eq .Sob.CurrencyCode "TTD" }} selected="selected" {{end}}>{{gettext "Trinidad and Tobago Dollars"}}</option>
+										<option value="TRL" {{if eq .Sob.CurrencyCode "TRL" }} selected="selected" {{end}}>{{gettext "Turkey Lira"}}</option>
+										<option value="VEB" {{if eq .Sob.CurrencyCode "VEB" }} selected="selected" {{end}}>{{gettext "Venezuela Bolivar"}}</option>
+										<option value="ZMK" {{if eq .Sob.CurrencyCode "ZMK" }} selected="selected" {{end}}>{{gettext "Zambia Kwacha"}}</option>
+										<option value="EUR" {{if eq .Sob.CurrencyCode "EUR" }} selected="selected" {{end}}>{{gettext "Euro"}}</option>
+										<option value="XCD" {{if eq .Sob.CurrencyCode "XCD" }} selected="selected" {{end}}>{{gettext "Eastern Caribbean Dollars"}}</option>
+										<option value="XDR" {{if eq .Sob.CurrencyCode "XDR" }} selected="selected" {{end}}>{{gettext "Special Drawing Right (IMF)"}}</option>
+										<option value="XAG" {{if eq .Sob.CurrencyCode "XAG" }} selected="selected" {{end}}>{{gettext "Silver Ounces"}}</option>
+										<option value="XAU" {{if eq .Sob.CurrencyCode "XAU" }} selected="selected" {{end}}>{{gettext "Gold Ounces"}}</option>
+										<option value="XPD" {{if eq .Sob.CurrencyCode "XPD" }} selected="selected" {{end}}>{{gettext "Palladium Ounces"}}</option>
+										<option value="XPT" {{if eq .Sob.CurrencyCode "XPT" }} selected="selected" {{end}}>{{gettext "Platinum Ounces"}}</option>
+									</select>		
+									</div>
+									<div class="form-group">
+										<label>{{gettext "End of life"}}</label>
+								        <div class="input-group">
+								                    <span class="input-group-addon">
+								                        <img src="/public/js/images2/cal.gif" onclick="javascript:NewCssCal ('eoltime','yyyyMMdd','dropdown',true,'24',true)"
+								                        style="cursor:pointer" />
+								                    </span>
+								                    <input class="form-control" placeholder="End of life" name="eoltime"
+								                    id="eoltime" type="text" value="{{ .Sob.EolTime}}" autofocus required>
+								        </div>
+								    </div>
+								    <a onclick="document.getElementById('profileForm').submit();return false"
+								    class="btn btn-lg btn-success btn-block">
+								        {{gettext "Submit"}}
+								    </a>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+				</div>
+</div>
+<script src="/public/js/moment.min.js"></script>
+<script src="/public/js/moment-timezone.min.js"></script>
+<script>
+$(document).ready(function() {
+	{{if ne 0 .Sob.EolTime }}
+		var startTime=$('#eoltime').val();
+		var startTimeStr=moment.unix(startTime).tz({{ .Timezone}}).format("YYYY-MM-DD HH:mm:ss");
+		$('#eoltime').val(startTimeStr);
+	{{end}}
+});
+</script>
+{{template "footer"}}

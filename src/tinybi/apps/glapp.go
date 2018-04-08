@@ -74,6 +74,23 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
 			this.accountEditPage(w, r)
 			break
+		case "sobs":
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_R", "/login.html")
+			this.sobPage(w, r)
+			break
+		case "sobsList":
+			//AJAX Method, list all accounts;
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_R", "/login.html")
+			this.sobList(w, r)
+			break
+		case "sobAdd":
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
+			this.sobAddPage(w, r)
+			break
+		case "sobEdit":
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
+			this.sobEditPage(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -96,6 +113,14 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 		case "accountEdit":
 			webcore.AclCheckRedirect(w, r, "GL_ACCOUNTS_W", "/login.html")
 			this.accountEdit(w, r)
+			break
+		case "sobAdd":
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
+			this.sobAdd(w, r)
+			break
+		case "sobEdit":
+			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
+			this.sobEdit(w, r)
 			break
 		}
 	}
@@ -603,5 +628,244 @@ func (this GLApp) accountEdit(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		this.accountPage(w, r)
+	}
+}
+
+func (this GLApp) sobPage(w http.ResponseWriter, r *http.Request) {
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_sobs.html").Execute(w, nil)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) sobList(w http.ResponseWriter, r *http.Request) {
+	nullRet := `{"data":[]}`
+	var fullRet struct {
+		Data []struct {
+			SobName      string `json:"0"`
+			CurrencyCode string `json:"1"`
+			EolTime      string `json:"2"`
+			EditLink     string `json:"3"`
+		} `json:"data"`
+	}
+	var sobs []models.GLSetOfBook
+	err := core.DBEngine.Table("gl_set_of_books").Find(&sobs)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	if len(sobs) == 0 {
+		w.Write([]byte(nullRet))
+		return
+	}
+	for _, sob := range sobs {
+		var sobRow struct {
+			SobName      string `json:"0"`
+			CurrencyCode string `json:"1"`
+			EolTime      string `json:"2"`
+			EditLink     string `json:"3"`
+		}
+		sobRow.SobName = sob.SobName
+		sobRow.CurrencyCode = sob.CurrencyCode
+		sobRow.EolTime = core.FromUnixTime(sob.EolTime)
+		sobRow.EditLink = fmt.Sprintf("<p class='fa fa-edit'><a href='/gl.html?act=sobEdit&id=%d'>Edit</a></P>", sob.Id)
+		fullRet.Data = append(fullRet.Data, sobRow)
+	}
+	sret, err := json.Marshal(fullRet)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	w.Write(sret)
+}
+
+func (this GLApp) sobAddPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title    string
+		Sob      models.GLSetOfBook
+		Act      string
+		Timezone string
+		Info     struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	Html.Title = "Create set of book"
+	Html.Act = "sobAdd"
+	Html.Timezone = core.Conf.TimeZone
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_sobs_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) sobAdd(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title    string
+		Sob      models.GLSetOfBook
+		Timezone string
+		Act      string
+		Info     struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	Html.Timezone = core.Conf.TimeZone
+	r.ParseForm()
+	Html.Sob.SobName = r.Form.Get("sobname")
+	Html.Sob.CurrencyCode = r.Form.Get("currencycode")
+	Html.Sob.EolTime = core.UnixTime(r.Form.Get("eoltime"))
+	Html.Title = "Create set of book"
+	Html.Act = "sobAdd"
+	if Html.Sob.SobName == "" || Html.Sob.CurrencyCode == "" || Html.Sob.EolTime == 0 {
+		Html.Info.Show = true
+		Html.Info.Type = "danger"
+		Html.Info.Message = "All input fields are required"
+	}
+	Html.Sob.LastUpdated = time.Now()
+	if !Html.Info.Show {
+		//Check conflict account;
+		var dupSob models.GLSetOfBook
+		ok, err := core.DBEngine.Table("gl_set_of_books").Where("sob_name=?", Html.Sob.SobName).And("id!=?", Html.Sob.Id).Get(&dupSob)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict account: "
+			Html.Info.Message += dupSob.SobName
+			Html.Info.Message += " ,currency code: "
+			Html.Info.Message += dupSob.CurrencyCode
+		} else {
+			_, err = core.DBEngine.Table("gl_set_of_books").Insert(&Html.Sob)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the set of book"
+			}
+		}
+	}
+	if Html.Info.Show {
+		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_sobs_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		this.sobPage(w, r)
+	}
+}
+
+func (this GLApp) sobEditPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title    string
+		Sob      models.GLSetOfBook
+		Timezone string
+		Act      string
+		Info     struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	Html.Timezone = core.Conf.TimeZone
+	//Load account info;
+	sobId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=sobEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	ok, err := core.DBEngine.Table("gl_set_of_books").Where("id = ?", sobId).Get(&Html.Sob)
+	if !ok {
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=sobEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Title = "Edit set of book"
+	Html.Act = "sobEdit"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_sobs_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) sobEdit(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title    string
+		Sob      models.GLSetOfBook
+		Timezone string
+		Act      string
+		Info     struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	Html.Timezone = core.Conf.TimeZone
+	//Load account info;
+	sobId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=sobEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	ok, err := core.DBEngine.Table("gl_set_of_books").Where("id = ?", sobId).Get(&Html.Sob)
+	if !ok {
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=sobEdit")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	r.ParseForm()
+	Html.Sob.SobName = r.Form.Get("sobname")
+	Html.Sob.CurrencyCode = r.Form.Get("currencycode")
+	Html.Sob.EolTime = core.UnixTime(r.Form.Get("eoltime"))
+	Html.Title = "Edit set of book"
+	Html.Act = "sobEdit"
+	if Html.Sob.SobName == "" || Html.Sob.CurrencyCode == "" || Html.Sob.EolTime == 0 {
+		Html.Info.Show = true
+		Html.Info.Type = "danger"
+		Html.Info.Message = "All input fields are required"
+	}
+	Html.Sob.LastUpdated = time.Now()
+	if !Html.Info.Show {
+		//Check conflict account;
+		var dupSob models.GLSetOfBook
+		ok, err := core.DBEngine.Table("gl_set_of_books").Where("sob_name=?", Html.Sob.SobName).And("id!=?", Html.Sob.Id).Get(&dupSob)
+		if ok {
+			Html.Info.Show = true
+			Html.Info.Type = "danger"
+			Html.Info.Message = "Found conflict account: "
+			Html.Info.Message += dupSob.SobName
+			Html.Info.Message += " ,currency code: "
+			Html.Info.Message += dupSob.CurrencyCode
+		} else {
+			log.Println(Html.Sob)
+			_, err = core.DBEngine.Table("gl_set_of_books").Where("id=?", sobId).Update(&Html.Sob)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				Html.Info.Show = true
+				Html.Info.Type = "danger"
+				Html.Info.Message = "Fail to save the set of book"
+			}
+		}
+	}
+	if Html.Info.Show {
+		err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_sobs_editor.html").Execute(w, Html)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		this.sobPage(w, r)
 	}
 }

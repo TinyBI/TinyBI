@@ -179,7 +179,8 @@ func (this GLModel) InitMasterPeriods() {
 			continue
 		}
 		glPeriod.StartTime = int(curTime.Unix())
-		glPeriod.EndTime = int(curEnd.Unix())
+		//Use 23:59:59;
+		glPeriod.EndTime = int(curEnd.Unix()) - 1
 		glPeriod.PeriodCode = curTime.Format("2006-01")
 		glPeriod.PeriodName = curTime.Format("2006-01")
 		glPeriod.Description = curTime.Format("2006-01")

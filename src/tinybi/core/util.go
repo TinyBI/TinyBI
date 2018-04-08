@@ -45,16 +45,16 @@ func UnixTime(str string) int {
 	if str == "" {
 		return 0
 	}
-	tm, err := time.Parse("2006-01-02 15:04:05", str)
-	if err != nil {
-		return 0
-	}
 	local, err := time.LoadLocation(Conf.TimeZone)
 	if err != nil {
 		if Conf.Debug {
 			log.Println(err)
 		}
-		return int(tm.Unix())
+		return 0
+	}
+	tm, err := time.ParseInLocation("2006-01-02 15:04:05", str, local)
+	if err != nil {
+		return 0
 	}
 	return int(tm.In(local).Unix())
 }

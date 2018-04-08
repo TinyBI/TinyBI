@@ -214,16 +214,8 @@ func (this GLApp) periodAdd(w http.ResponseWriter, r *http.Request) {
 	Html.Period.PeriodName = r.Form.Get("periodname")
 	Html.Period.Status = r.Form.Get("status")
 	Html.Period.Description = r.Form.Get("description")
-	//Html.Period.StartTime = r.Form.Get("starttime")
-	//Html.Period.EndTime = r.Form.Get("endtime")
-	tm, err := time.Parse("2006-01-02 15:04:05", r.Form.Get("starttime"))
-	if err == nil {
-		Html.Period.StartTime = int(tm.Unix())
-	}
-	tm, err = time.Parse("2006-01-02 15:04:05", r.Form.Get("endtime"))
-	if err == nil {
-		Html.Period.EndTime = int(tm.Unix())
-	}
+	Html.Period.StartTime = core.UnixTime(r.Form.Get("starttime"))
+	Html.Period.EndTime = core.UnixTime(r.Form.Get("endtime"))
 	Html.Title = "Add Period"
 	Html.Act = "periodAdd"
 	if Html.Period.PeriodCode == "" || Html.Period.PeriodName == "" {
@@ -340,16 +332,8 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 	Html.Period.PeriodName = r.Form.Get("periodname")
 	Html.Period.Status = r.Form.Get("status")
 	Html.Period.Description = r.Form.Get("description")
-	//Html.Period.StartTime = r.Form.Get("starttime")
-	//Html.Period.EndTime = r.Form.Get("endtime")
-	tm, err := time.Parse("2006-01-02 15:04:05", r.Form.Get("starttime"))
-	if err == nil {
-		Html.Period.StartTime = int(tm.Unix())
-	}
-	tm, err = time.Parse("2006-01-02 15:04:05", r.Form.Get("endtime"))
-	if err == nil {
-		Html.Period.EndTime = int(tm.Unix())
-	}
+	Html.Period.StartTime = core.UnixTime(r.Form.Get("starttime"))
+	Html.Period.EndTime = core.UnixTime(r.Form.Get("endtime"))
 	Html.Title = "Edit Period"
 	Html.Act = "periodEdit"
 	if Html.Period.PeriodCode == "" || Html.Period.PeriodName == "" {

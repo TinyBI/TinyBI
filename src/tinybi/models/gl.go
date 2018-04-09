@@ -73,8 +73,7 @@ type GLJournal struct {
 	Id            int64     `xorm:"'id'" json:"_"`
 	SobId         int64     `xorm:"sob_id" json:"sob_id"`
 	JournalDate   string    `xorm:"'journal_date'" json:"journal_date"`
-	JournalCode   string    `xorm:"'journal_code'" json:"journal_code"`
-	JournalName   string    `xorm:"'journal_name'" json:"journal_name"`
+	JournalSn     string    `xorm:"'journal_code'" json:"journal_code"`
 	Description   string    `xorm:"'description'" json:"description"`
 	Voucher       string    `xorm:"'voucher'" json:"voucher"`
 	Source        string    `xorm:"'source'" json:"source"`

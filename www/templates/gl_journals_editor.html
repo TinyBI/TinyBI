@@ -1,0 +1,125 @@
+{{template "header" .}}
+<script src="/public/js/datetimepicker_css.js"></script>
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext .Title}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="/gl.html?act=journals">{{gettext "General Journals"}}</a>
+                        </div>
+						<div class="panel-body">
+						{{if .Info.Show }}
+						<div class="alert alert-{{ .Info.Type }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Info.Message}}
+                        </div>
+						{{end}}
+							<form id="profileForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Journal.Id }}" method="post">
+								<fieldset>
+									<div class="form-group">
+										<label>Set of book</label>
+										<select name="sob_id" class="form-control">
+										{{$journal := .Journal}}
+										{{range $k, $sob := .Sobs }}
+											<option value="{{$sob.Id}}" 
+											{{if eq $sob.Id $journal.SobId}}
+											selected
+											{{end}}
+											>{{$sob.SobName}}</option>
+										{{end}}
+										</select>
+									</div>
+									<div class="form-group">
+										<label>Accounting period</label>
+										<select name="period_id" class="form-control">
+										{{$journal := .Journal}}
+										{{range $k, $period := .Periods }}
+											<option value="{{$period.Id}}" 
+											{{if eq $period.Id $journal.PeriodId}}
+											selected
+											{{end}}
+											>{{$period.PeriodName}}</option>
+										{{end}}
+										</select>
+									</div>
+								    <div class="form-group">
+										<label>Date</label>
+								        <div class="input-group">
+								                    <span class="input-group-addon">
+								                        <img src="/public/js/images2/cal.gif" onclick="javascript:NewCssCal ('journal_date','yyyyMMdd','dropdown')"
+								                        style="cursor:pointer" />
+								                    </span>
+								                    <input class="form-control" placeholder="Journal Date" name="journal_date"
+								                    id="journal_date" type="text" value="{{ .Journal.JournalDate}}" autofocus required>
+								        </div>
+								    </div>
+								    <div class="form-group">
+										<label>Voucher No.(Left empty to generate it automatically)</label>
+								        <input class="form-control" placeholder="Voucher No." name="voucher"
+								        type="text" value="{{ .Journal.Voucher}}" autofocus>
+								    </div>
+									<div class="form-group">
+                                            <label>Description</label>
+                                            <textarea class="form-control" name="description" rows="3">{{ .Journal.Description }}</textarea>
+                                    </div>
+									<div class="form-group">
+									<!-- Start of lines -->
+									<div id="je_lines"></div>
+									<!-- End of lines -->
+									</div>
+								    <a onclick="document.getElementById('profileForm').submit();return false"
+								    class="btn btn-lg btn-success btn-block">
+								        {{gettext "Submit"}}
+								    </a>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+				</div>
+</div>
+<script src="/public/js/moment.min.js"></script>
+<script>
+$(document).ready(function() {
+	var accountSelect = "<select class='form-control'>";
+	{{range $k, $account := .Accounts}}
+		accountSelect += "<option value='";
+		accountSelect += {{$account.Id}};
+		accountSelect += "'>";
+		accountSelect += {{$account.AccountName}};
+		accountSelect += "</option>";
+	{{end}}
+	accountSelect += "</select>";
+	var eTable = $('#je_lines').editTable({
+		data: [
+			[""]
+		],
+		field_templates: {
+			'accounts':{
+				html: accountSelect,
+	            getValue: function (input) {
+	                return $(input).val();
+	            },
+	            setValue: function (input, value) {
+	                var select = $(input);
+	                select.find('option').filter(function() {
+	                    return $(this).val() == value; 
+	                }).attr('selected', true);
+	                return select;
+	            }
+			}
+		},
+		headerCols: [
+		'Description',
+		'Account',
+		'Debit',
+		'Credit'
+		],
+		first_row: false,
+		row_template: ['text', 'accounts', 'text', 'text'],
+	});
+});
+</script>
+{{template "footer"}}

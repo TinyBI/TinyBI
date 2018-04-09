@@ -95,6 +95,14 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
 			this.sobEditPage(w, r)
 			break
+		case "journals":
+			webcore.AclCheckRedirect(w, r, "GL_JES_R", "/login.html")
+			this.journalPage(w, r)
+			break
+		case "journalAdd":
+			webcore.AclCheckRedirect(w, r, "GL_JES_CREATE", "/login.html")
+			this.journalAddPage(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -893,5 +901,41 @@ func (this GLApp) sobEdit(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		this.sobPage(w, r)
+	}
+}
+
+func (this GLApp) journalPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Sobs []models.GLSetOfBook
+	}
+	core.DBEngine.Table("gl_set_of_books").Where("1=1").Find(&Html.Sobs)
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_journals.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) journalAddPage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title    string
+		Sobs     []models.GLSetOfBook
+		Periods  []models.GLPeriod
+		Accounts []models.GLAccount
+		Journal  models.GLJournal
+		Act      string
+		Info     struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	core.DBEngine.Table("gl_set_of_books").Where("1=1").Find(&Html.Sobs)
+	core.DBEngine.Table("gl_periods").Where("1=1").Find(&Html.Periods)
+	core.DBEngine.Table("gl_accounts").Where("1=1").Find(&Html.Accounts)
+	Html.Title = "Create Manual Journal"
+	Html.Act = "journalAdd"
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_journals_editor.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
 	}
 }

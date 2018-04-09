@@ -134,6 +134,10 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
 			this.sobEdit(w, r)
 			break
+		case "journalAdd":
+			webcore.AclCheckRedirect(w, r, "GL_JES_CREATE", "/login.html")
+			this.journalAdd(w, r)
+			break
 		}
 	}
 }
@@ -938,4 +942,129 @@ func (this GLApp) journalAddPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
+	strNullFail := `{"status":"failed","message":"Null input"}`
+	strIllegalFail := `{"status":"failed","message":"Illegal input"}`
+	strHeaderFail := `{"status":"failed","message":"Fail to save journal header"}`
+	strLineFail := `{"status":"failed","message":"Fail to save journal line"}`
+	strSuccess := `{"status":"success","message":"Operation completed"}`
+	session := webcore.AclGetSession(r)
+	if session == nil {
+		w.Write([]byte(strIllegalFail))
+		return
+	}
+	r.ParseForm()
+	dataJson := r.Form.Get("data")
+	if dataJson == "" {
+		w.Write([]byte(strNullFail))
+		return
+	}
+	var data struct {
+		Header struct {
+			SobId       string `json:"sob_id"`
+			PeriodId    string `json:"period_id"`
+			JournalDate string `json:"journal_date"`
+			Voucher     string `json:"voucher"`
+			Description string `json:"description"`
+		} `json:"header"`
+		Lines [][]string `json:"lines"`
+	}
+	err := json.Unmarshal([]byte(dataJson), &data)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		w.Write([]byte(strIllegalFail))
+		return
+	}
+	//Insert header;
+	glModel := new(models.GLModel)
+	var header models.GLJournal
+	header.Voucher = data.Header.Voucher
+	if header.Voucher == "" {
+		header.Voucher = glModel.NewVoucherNo()
+	}
+	header.Status = models.GLJournalStatusCreated
+	header.Source = models.GLJournalSourceManual
+	header.CreatedDate = core.NowTime()
+	header.CreatedBy = session.User.NickName
+	header.JournalDate = data.Header.JournalDate
+	header.Description = data.Header.Description
+	var nId int
+	nId, err = strconv.Atoi(data.Header.SobId)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		w.Write([]byte(strIllegalFail))
+		return
+	}
+	header.SobId = int64(nId)
+	nId, err = strconv.Atoi(data.Header.PeriodId)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		w.Write([]byte(strIllegalFail))
+		return
+	}
+	header.PeriodId = int64(nId)
+	header.LastUpdated = time.Now()
+	_, err = core.DBEngine.Table("gl_journals").Insert(&header)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		w.Write([]byte(strHeaderFail))
+		return
+	}
+	//Insert lines;
+	for _, lData := range data.Lines {
+		var line models.GLJournalEntry
+		line.JournalId = header.Id
+		line.Description = lData[0]
+		nId, err = strconv.Atoi(lData[1])
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			w.Write([]byte(strIllegalFail))
+			return
+		}
+		line.AccountId = int64(nId)
+		var nMoney float64
+		if lData[2] != "" {
+			nMoney, err = strconv.ParseFloat(lData[2], 64)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				nMoney = 0
+			}
+			line.Debit = float32(nMoney)
+		}
+		if lData[3] != "" {
+			nMoney, err = strconv.ParseFloat(lData[3], 64)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				nMoney = 0
+			}
+			line.Credit = float32(nMoney)
+		}
+		line.LastUpdated = time.Now()
+		_, err := core.DBEngine.Table("gl_journal_entries").Insert(&line)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(line)
+				log.Println(err)
+			}
+			w.Write([]byte(strLineFail))
+			return
+		}
+	}
+	w.Write([]byte(strSuccess))
 }

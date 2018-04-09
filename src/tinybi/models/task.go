@@ -31,7 +31,7 @@ import (
 
 //Current Tasks;
 type ConcurrentTask struct {
-	Id          int64     `xorm:"'id'"`
+	Id          int64
 	Description string    `xorm:"'description'"`
 	Status      string    `xorm:"'status'"`
 	Percentage  float32   `xorm:"'percentage'"`

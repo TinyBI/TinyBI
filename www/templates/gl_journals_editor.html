@@ -17,7 +17,7 @@
                                 {{gettext .Info.Message}}
                         </div>
 						{{end}}
-							<form id="profileForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Journal.Id }}" method="post">
+							<form id="journalForm" role="form" action="/gl.html?act={{ .Act}}&id={{ .Journal.Id }}" method="post">
 								<fieldset>
 									<div class="form-group">
 										<label>Set of book</label>
@@ -64,13 +64,13 @@
 									<div class="form-group">
                                             <label>Description</label>
                                             <textarea class="form-control" name="description" rows="3">{{ .Journal.Description }}</textarea>
-                                    </div>
+									</div>
 									<div class="form-group">
 									<!-- Start of lines -->
 									<div id="je_lines"></div>
 									<!-- End of lines -->
 									</div>
-								    <a onclick="document.getElementById('profileForm').submit();return false"
+								    <a onclick="submitForm()"
 								    class="btn btn-lg btn-success btn-block">
 								        {{gettext "Submit"}}
 								    </a>
@@ -92,7 +92,7 @@ $(document).ready(function() {
 		accountSelect += "</option>";
 	{{end}}
 	accountSelect += "</select>";
-	var eTable = $('#je_lines').editTable({
+	eTable = $('#je_lines').editTable({
 		data: [
 			[""]
 		],
@@ -121,5 +121,34 @@ $(document).ready(function() {
 		row_template: ['text', 'accounts', 'text', 'text'],
 	});
 });
+function getFormData(form){
+    var unindexed_array = $(form).serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] = n['value'];
+    });
+
+    return JSON.stringify(indexed_array);
+}
+function submitForm(){
+	var fullData='{"header":';
+	fullData+=getFormData("#journalForm");
+	fullData+=',"lines":';
+	fullData+=eTable.getJsonData();
+	fullData+='}';
+	$.ajax({
+		url: 	"/gl.html?act={{ .Act}}&id={{ .Journal.Id }}",
+		type: 	'POST',
+		data: 	{
+			ajax: true,
+			data: fullData
+		},
+		complete: function (result) {
+			console.log(JSON.parse(result.responseText));
+		}
+	});
+	return false;
+}
 </script>
 {{template "footer"}}

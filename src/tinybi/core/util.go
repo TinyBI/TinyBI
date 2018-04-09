@@ -72,3 +72,7 @@ func FromUnixTime(t int) string {
 	}
 	return time.Unix(int64(t), 0).In(local).Format("2006-01-02 15:04:05")
 }
+
+func NowTime() string {
+	return FromUnixTime(int(time.Now().Unix()))
+}

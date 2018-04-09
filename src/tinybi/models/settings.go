@@ -29,7 +29,7 @@ import (
 
 //Core Business Settings;
 type Settings struct {
-	Id          int64     `xorm:"'id'" json:"0"`
+	Id          int64
 	Code        string    `xorm:"'code'" json:"1"`
 	Description string    `xorm:"'description'" json:"2"`
 	Value       string    `xorm:"'value'" json:"3"`

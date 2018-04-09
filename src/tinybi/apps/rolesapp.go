@@ -51,6 +51,11 @@ type roleDefine struct {
 	Description string `json:"description"`
 }
 
+type roleGroupDefine struct {
+	Title string       `json:"title"`
+	Acls  []roleDefine `json:"acls"`
+}
+
 func (this RolesApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		webcore.AclCheckRedirect(w, r, "SYSTEM", "/login.html")
@@ -155,7 +160,7 @@ func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
 		Title       string
 		Role        roleRow
 		Act         string
-		Acls        []roleDefine
+		Acls        []roleGroupDefine
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
@@ -166,12 +171,15 @@ func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
 	//Load ACL definition from JSON file;
 	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
 	if err != nil {
-		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		log.Printf("Fail to open file:%s\n", core.Conf.App.Web.AclDefinePath)
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
 	}
 	err = json.Unmarshal(jsonStr, &Html.Acls)
 	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
 		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
@@ -189,7 +197,7 @@ func (this RolesApp) add(w http.ResponseWriter, r *http.Request) {
 		Title       string
 		Role        roleRow
 		Act         string
-		Acls        []roleDefine
+		Acls        []roleGroupDefine
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
@@ -222,7 +230,7 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 		Title       string
 		Role        roleRow
 		Act         string
-		Acls        []roleDefine
+		Acls        []roleGroupDefine
 		CheckedAcls []string
 		Info        struct {
 			Show    bool
@@ -258,12 +266,15 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 	//Load ACL definition from JSON file;
 	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
 	if err != nil {
-		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
+		log.Printf("Fail to open file:%s\n", core.Conf.App.Web.AclDefinePath)
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
 	}
 	err = json.Unmarshal(jsonStr, &Html.Acls)
 	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
 		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
@@ -281,7 +292,7 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 		Title       string
 		Role        roleRow
 		Act         string
-		Acls        []roleDefine
+		Acls        []roleGroupDefine
 		CheckedAcls []string
 		Info        struct {
 			Show    bool

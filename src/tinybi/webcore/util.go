@@ -20,7 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package webcore
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 //Utilities for WEB module
 
@@ -49,4 +52,12 @@ func SetUILang(w http.ResponseWriter, r *http.Request, lang string) string {
 	nLangCookie := http.Cookie{Name: "lang", Value: lang}
 	http.SetCookie(w, &nLangCookie)
 	return oldLang
+}
+
+func JsonEncode(in interface{}) string {
+	bstr, err := json.Marshal(in)
+	if err != nil {
+		return ""
+	}
+	return string(bstr)
 }

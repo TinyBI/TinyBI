@@ -237,6 +237,6 @@ func (this GLModel) NewVoucherNo() string {
 		sumD += d
 	}
 	valNo := sumD % 10
-	sn = fmt.Sprintf("%s%3d%d", strNow, voucherNexval, valNo)
+	sn = fmt.Sprintf("%s%03d%d", strNow, voucherNexval, valNo)
 	return sn
 }

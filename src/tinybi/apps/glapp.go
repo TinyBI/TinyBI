@@ -945,20 +945,25 @@ func (this GLApp) journalAddPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
-	strNullFail := `{"status":"failed","message":"Null input"}`
-	strIllegalFail := `{"status":"failed","message":"Illegal input"}`
-	strHeaderFail := `{"status":"failed","message":"Fail to save journal header"}`
-	strLineFail := `{"status":"failed","message":"Fail to save journal line"}`
-	strSuccess := `{"status":"success","message":"Operation completed"}`
+	var ret struct {
+		Status   string `json:"status"`
+		Message  string `json:"message"`
+		Voucher  string `json:"voucher"`
+		HeaderId int64  `json:"header_id"`
+	}
 	session := webcore.AclGetSession(r)
 	if session == nil {
-		w.Write([]byte(strIllegalFail))
+		ret.Status = "failed"
+		ret.Message = "Illegal call"
+		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
 	r.ParseForm()
 	dataJson := r.Form.Get("data")
 	if dataJson == "" {
-		w.Write([]byte(strNullFail))
+		ret.Status = "failed"
+		ret.Message = "Illegal call"
+		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
 	var data struct {
@@ -976,12 +981,37 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 		if core.Conf.Debug {
 			log.Println(err)
 		}
-		w.Write([]byte(strIllegalFail))
+		ret.Status = "failed"
+		ret.Message = "Illegal call"
+		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
-	//Insert header;
+	//Parse header;
 	glModel := new(models.GLModel)
 	var header models.GLJournal
+	if r.URL.Query().Get("id") != "0" {
+		headerId, err := strconv.Atoi(r.URL.Query().Get("id"))
+		if err != nil {
+			ret.Status = "failed"
+			ret.Message = "Illegal call"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
+		}
+		ok, _ := core.DBEngine.Table("gl_journals").Where("id=?", headerId).Get(&header)
+		if !ok {
+			ret.Status = "failed"
+			ret.Message = "Illegal call"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
+		}
+		//Only 'CREATED' journal can be updated;
+		if header.Status != models.GLJournalStatusCreated {
+			ret.Status = "failed"
+			ret.Message = "Journals are readonly after been approved"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
+		}
+	}
 	header.Voucher = data.Header.Voucher
 	if header.Voucher == "" {
 		header.Voucher = glModel.NewVoucherNo()
@@ -998,7 +1028,9 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 		if core.Conf.Debug {
 			log.Println(err)
 		}
-		w.Write([]byte(strIllegalFail))
+		ret.Status = "failed"
+		ret.Message = "Illegal call"
+		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
 	header.SobId = int64(nId)
@@ -1007,20 +1039,53 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 		if core.Conf.Debug {
 			log.Println(err)
 		}
-		w.Write([]byte(strIllegalFail))
+		ret.Status = "failed"
+		ret.Message = "Illegal call"
+		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
 	header.PeriodId = int64(nId)
 	header.LastUpdated = time.Now()
-	_, err = core.DBEngine.Table("gl_journals").Insert(&header)
-	if err != nil {
-		if core.Conf.Debug {
-			log.Println(err)
+	if header.Id == 0 {
+		_, err = core.DBEngine.Table("gl_journals").Insert(&header)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			ret.Status = "failed"
+			ret.Message = "Fail to save the journal"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
 		}
-		w.Write([]byte(strHeaderFail))
-		return
+	} else {
+		_, err = core.DBEngine.Table("gl_journals").Where("id=?", header.Id).Update(&header)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			ret.Status = "failed"
+			ret.Message = "Fail to save the journal"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
+		}
 	}
 	//Insert lines;
+	if r.URL.Query().Get("id") != "0" {
+		//Delete all lines first;
+		var dLine models.GLJournalEntry
+		_, err = core.DBEngine.Table("gl_journal_entries").Where("journal_id=?", header.Id).Delete(&dLine)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			ret.Status = "failed"
+			ret.Message = "Fail to save the journal lines"
+			w.Write([]byte(webcore.JsonEncode(ret)))
+			return
+		}
+	}
+	header.Debit = 0
+	header.Credit = 0
 	for _, lData := range data.Lines {
 		var line models.GLJournalEntry
 		line.JournalId = header.Id
@@ -1030,7 +1095,9 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 			if core.Conf.Debug {
 				log.Println(err)
 			}
-			w.Write([]byte(strIllegalFail))
+			ret.Status = "failed"
+			ret.Message = "Illegal call"
+			w.Write([]byte(webcore.JsonEncode(ret)))
 			return
 		}
 		line.AccountId = int64(nId)
@@ -1062,9 +1129,27 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 				log.Println(line)
 				log.Println(err)
 			}
-			w.Write([]byte(strLineFail))
+			ret.Status = "failed"
+			ret.Message = "Fail to save journal lines"
+			w.Write([]byte(webcore.JsonEncode(ret)))
 			return
 		}
+		header.Debit += line.Debit
+		header.Credit += line.Debit
 	}
-	w.Write([]byte(strSuccess))
+	_, err = core.DBEngine.Table("gl_journals").Where("id=?", header.Id).Update(&header)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		ret.Status = "failed"
+		ret.Message = "Fail to save the sum of the journal"
+		w.Write([]byte(webcore.JsonEncode(ret)))
+		return
+	}
+	ret.Status = "success"
+	ret.Message = "Opoeration completed"
+	ret.HeaderId = header.Id
+	ret.Voucher = header.Voucher
+	w.Write([]byte(webcore.JsonEncode(ret)))
 }

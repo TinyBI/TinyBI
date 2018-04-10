@@ -58,7 +58,7 @@
 								    </div>
 								    <div class="form-group">
 										<label>Voucher No.(Left empty to generate it automatically)</label>
-								        <input class="form-control" placeholder="Voucher No." name="voucher"
+								        <input class="form-control" placeholder="Voucher No." id="voucher" name="voucher"
 								        type="text" value="{{ .Journal.Voucher}}" autofocus>
 								    </div>
 									<div class="form-group">
@@ -138,14 +138,22 @@ function submitForm(){
 	fullData+=eTable.getJsonData();
 	fullData+='}';
 	$.ajax({
-		url: 	"/gl.html?act={{ .Act}}&id={{ .Journal.Id }}",
+		url: 	$("#journalForm").attr("action"),
 		type: 	'POST',
 		data: 	{
 			ajax: true,
 			data: fullData
 		},
 		complete: function (result) {
-			console.log(JSON.parse(result.responseText));
+			var robj=JSON.parse(result.responseText);
+			console.log(robj);
+			if (robj.status == "success") {
+				$("#voucher").val(robj.voucher);
+				$('#voucher').attr("readOnly",true);
+				$("#journalForm").attr("action","/gl.html?act={{ .Act}}&id="+robj.header_id)
+			}else{
+				alert(robj.message);
+			}
 		}
 	});
 	return false;

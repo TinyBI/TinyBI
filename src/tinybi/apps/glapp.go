@@ -99,9 +99,17 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_JES_R", "/login.html")
 			this.journalPage(w, r)
 			break
-		case "journalAdd":
+		case "journalList":
+			webcore.AclCheckRedirect(w, r, "GL_JES_R", "/login.html")
+			this.journalList(w, r)
+			break
+		case "journalEdit":
 			webcore.AclCheckRedirect(w, r, "GL_JES_CREATE", "/login.html")
-			this.journalAddPage(w, r)
+			this.journalEditPage(w, r)
+			break
+		case "journalDetail":
+			webcore.AclCheckRedirect(w, r, "GL_JES_R", "/login.html")
+			this.journalDetail(w, r)
 			break
 		default:
 			//404
@@ -134,9 +142,9 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_SOBS_W", "/login.html")
 			this.sobEdit(w, r)
 			break
-		case "journalAdd":
+		case "journalEdit":
 			webcore.AclCheckRedirect(w, r, "GL_JES_CREATE", "/login.html")
-			this.journalAdd(w, r)
+			this.journalEdit(w, r)
 			break
 		}
 	}
@@ -919,7 +927,7 @@ func (this GLApp) journalPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this GLApp) journalAddPage(w http.ResponseWriter, r *http.Request) {
+func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 	var Html struct {
 		Title    string
 		Sobs     []models.GLSetOfBook
@@ -944,7 +952,7 @@ func (this GLApp) journalAddPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
+func (this GLApp) journalEdit(w http.ResponseWriter, r *http.Request) {
 	var ret struct {
 		Status   string `json:"status"`
 		Message  string `json:"message"`
@@ -1045,6 +1053,21 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	header.PeriodId = int64(nId)
+	//Check whether the period is opened;
+	var period models.GLPeriod
+	ok, _ := core.DBEngine.Table("gl_periods").Where("id=?", header.PeriodId).Get(&period)
+	if !ok {
+		ret.Status = "failed"
+		ret.Message = "Invalid period"
+		w.Write([]byte(webcore.JsonEncode(ret)))
+		return
+	}
+	if period.Status != "OPENED" {
+		ret.Status = "failed"
+		ret.Message = "The selected period is not opened"
+		w.Write([]byte(webcore.JsonEncode(ret)))
+		return
+	}
 	header.LastUpdated = time.Now()
 	if header.Id == 0 {
 		_, err = core.DBEngine.Table("gl_journals").Insert(&header)
@@ -1152,4 +1175,100 @@ func (this GLApp) journalAdd(w http.ResponseWriter, r *http.Request) {
 	ret.HeaderId = header.Id
 	ret.Voucher = header.Voucher
 	w.Write([]byte(webcore.JsonEncode(ret)))
+}
+
+func (this GLApp) journalList(w http.ResponseWriter, r *http.Request) {
+	nullRet := `{"data":[]}`
+	sobId, err := strconv.Atoi(r.URL.Query().Get("sobId"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=journalList")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	var fullRet struct {
+		Data []struct {
+			JournalDate string  `json:"0"`
+			Status      string  `json:"1"`
+			Description string  `json:"2"`
+			Debit       float32 `json:"3"`
+			Credit      float32 `json:"4"`
+			EditLink    string  `json:"5"`
+		} `json:"data"`
+	}
+	var journals []models.GLJournal
+	err = core.DBEngine.Table("gl_journals").Where("sob_id=?", sobId).Find(&journals)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	for _, journal := range journals {
+		var journalRow struct {
+			JournalDate string  `json:"0"`
+			Status      string  `json:"1"`
+			Description string  `json:"2"`
+			Debit       float32 `json:"3"`
+			Credit      float32 `json:"4"`
+			EditLink    string  `json:"5"`
+		}
+		journalRow.JournalDate = journal.JournalDate
+		journalRow.Status = journal.Status
+		journalRow.Description = journal.Description
+		journalRow.Debit = journal.Debit
+		journalRow.Credit = journal.Credit
+		journalRow.EditLink = fmt.Sprintf("<p class='fa fa-eye'><a href='/gl.html?act=journalDetail&id=%d'>View</a></P>", journal.Id)
+		fullRet.Data = append(fullRet.Data, journalRow)
+	}
+	w.Write([]byte(webcore.JsonEncode(fullRet)))
+}
+
+func (this GLApp) journalDetail(w http.ResponseWriter, r *http.Request) {
+	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=journalDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	var Html struct {
+		Title       string
+		JournalInfo struct {
+			Header models.GLJournal   `xorm:"extends"`
+			Period models.GLPeriod    `xorm:"extends"`
+			Sob    models.GLSetOfBook `xorm:"extends"`
+		}
+		JournalDetail []struct {
+			Line    models.GLJournalEntry `xorm:"extends"`
+			Account models.GLAccount      `xorm:"extends"`
+		}
+	}
+	ok, err := core.DBEngine.Table("gl_journals").Where("gl_journals.id=?", journalId).Join(
+		"INNER", "gl_periods", "gl_journals.period_id=gl_periods.id").Join(
+		"INNER", "gl_set_of_books", "gl_journals.sob_id=gl_set_of_books.id").Get(&Html.JournalInfo)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=journalDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	if !ok {
+		log.Printf("Illegal visit of gl.html?act=journalDetail, No journal:", journalId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	err = core.DBEngine.Table("gl_journal_entries").Where("journal_id=?", journalId).Join(
+		"INNER", "gl_accounts", "gl_journal_entries.account_id=gl_accounts.id").Find(&Html.JournalDetail)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=journalDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Title = "Journal Detail"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_journals_detail.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
 }

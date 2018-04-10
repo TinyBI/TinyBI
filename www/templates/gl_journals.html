@@ -7,14 +7,14 @@
 				<div class="col-lg-12">
 					<div class="panel panel-default">
 						<div class="panel-heading">
-                            <a class="btn btn-default" href="/gl.html?act=journalAdd">{{gettext "New Manual Journal"}}</a>
+                            <a class="btn btn-default" href="/gl.html?act=journalEdit">{{gettext "New Manual Journal"}}</a>
                         </div>
 						<div class="panel-body">
 						<form id="jeForm" role="form" action="/gl.html?act=changeSob&id=0" method="post">
 							<fieldset>
 								<div class="form-group">
 									<label>Set of book</label>
-									<select name="sob" class="form-control">
+									<select id="sob" name="sob" class="form-control">
 									{{range $k, $sob := .Sobs }}
 										<option value="{{$sob.Id}}">{{$sob.SobName}}</option>
 									{{end}}
@@ -26,9 +26,11 @@
                                 <thead>
                                     <tr>
                                         <th>{{gettext "Date"}}</th>
+										<th>{{gettext "Status"}}</th>
                                         <th>{{gettext "Description"}}</th>
                                         <th>{{gettext "Debit"}}</th>
 										<th>{{gettext "Credit"}}</th>
+										<th>{{gettext "Operation"}}</th>
                                     </tr>
                                 </thead>
 								<tbody>
@@ -43,9 +45,18 @@
 <script src="/public/vendor/datatables-responsive/dataTables.responsive.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
+	var sobId=$("#sob").val();
     $('#DataList').DataTable( {
-		"responsive": true
-    } );
-} );
+		"ajax": "/gl.html?act=journalList&sobId="+sobId,
+		"responsive": true,
+		"columnDefs": [
+	       { "render": $.fn.dataTable.render.number(',', '.', 2, '') , "targets": [3,4] }
+	     ]
+	});
+});
+$("#sob").change(function(){
+	var sobId=$("#sob").val();
+	$('#DataList').DataTable().ajax.url("/gl.html?act=journalList&sobId="+sobId).load();
+}); 
 </script>
 {{template "footer"}}

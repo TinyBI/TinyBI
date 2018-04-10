@@ -1,6 +1,8 @@
 {{template "header" .}}
 <script src="/public/js/datetimepicker_css.js"></script>
 <script src="/public/vendor/jquery-printthis/js/printThis.js"></script>
+<script src="/public/vendor/jquery-numberformatter/js/jshashtable-3.0.js"></script>
+<script src="/public/vendor/jquery-numberformatter/js/jquery.numberformatter.js"></script>
 <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">{{gettext .Title}}</h1>
@@ -42,14 +44,14 @@
 											<tr>
 												<td>{{$detail.Line.Description}}</td>
 												<td>{{$detail.Account.AccountName}}</td>
-												<td>{{$detail.Line.Debit}}</td>
-												<td>{{$detail.Line.Credit}}</td>
+												<td class="currency">{{$detail.Line.Debit}}</td>
+												<td class="currency">{{$detail.Line.Credit}}</td>
 											</tr>
 										{{end}}
 										<tr>
 											<td colspan="2">Summary</td>
-											<td>{{.JournalInfo.Header.Debit}}</td>
-											<td>{{.JournalInfo.Header.Credit}}</td>
+											<td class="currency">{{.JournalInfo.Header.Debit}}</td>
+											<td class="currency">{{.JournalInfo.Header.Credit}}</td>
 										</tr>
 									</tbody>
 								</table>
@@ -77,10 +79,15 @@
 					</div>
 				</div>
 </div>
-<script>
+<script type="text/javascript">
 function PrintJournal(){
 	$("#journal").printThis({importCSS: true, importStyle: true
 		});
 }
+$(document).ready(function() {
+	$(".currency").each(function() {
+            $(this).formatNumber({format:"#,###.00", locale:"us"});
+        });
+});
 </script>
 {{template "footer"}}

@@ -17,13 +17,13 @@
 								<h4 class="text-center">{{.JournalInfo.Header.Description}}</h4>
 							</div>
 							<div class="row">
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Voucher: {{.JournalInfo.Header.Voucher}}
 								</div>
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Date: {{.JournalInfo.Header.JournalDate}}
 								</div>
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Source: {{.JournalInfo.Header.Source}}
 								</div>
 							</div>
@@ -55,13 +55,13 @@
 								</table>
 							</div>
 							<div class="row">
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Created By: {{.JournalInfo.Header.CreatedBy}}
 								</div>
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Approved By: {{.JournalInfo.Header.ApprovedBy}}
 								</div>
-								<div class="col-md-4">
+								<div class="col-xs-4 col-md-4">
 									Accounted By: {{.JournalInfo.Header.AccountedBy}}
 								</div>
 							</div>
@@ -79,8 +79,7 @@
 </div>
 <script>
 function PrintJournal(){
-	$("#journal").printThis({importCSS: true,  
-               importStyle: true, pageTitle: "Voucher: {{.JournalInfo.Header.Voucher}}"
+	$("#journal").printThis({importCSS: true, importStyle: true
 		});
 }
 </script>

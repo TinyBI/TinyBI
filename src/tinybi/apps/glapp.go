@@ -111,6 +111,10 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_JES_R", "/login.html")
 			this.journalDetail(w, r)
 			break
+		case "journalApprove":
+			webcore.AclCheckRedirect(w, r, "GL_JES_APPROVE", "/login.html")
+			this.journalApprove(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -929,13 +933,14 @@ func (this GLApp) journalPage(w http.ResponseWriter, r *http.Request) {
 
 func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 	var Html struct {
-		Title    string
-		Sobs     []models.GLSetOfBook
-		Periods  []models.GLPeriod
-		Accounts []models.GLAccount
-		Journal  models.GLJournal
-		Act      string
-		Info     struct {
+		Title        string
+		Sobs         []models.GLSetOfBook
+		Periods      []models.GLPeriod
+		Accounts     []models.GLAccount
+		Journal      models.GLJournal
+		JournalLines string
+		Act          string
+		Info         struct {
 			Show    bool
 			Type    string
 			Message string
@@ -945,7 +950,56 @@ func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 	core.DBEngine.Table("gl_periods").Where("1=1").Find(&Html.Periods)
 	core.DBEngine.Table("gl_accounts").Where("1=1").Find(&Html.Accounts)
 	Html.Title = "Create Manual Journal"
-	Html.Act = "journalAdd"
+	Html.Act = "journalEdit"
+	journalId := r.URL.Query().Get("id")
+	if journalId == "" {
+		journalId = "0"
+	}
+	if journalId != "0" {
+		// Load Journal to Edit;
+		ok, err := core.DBEngine.Table("gl_journals").Where("id=?", journalId).Get(&Html.Journal)
+		if !ok {
+			if err != nil && core.Conf.Debug {
+				log.Println(err)
+			}
+			log.Printf("Illegal visit of gl.html?act=journalEdit")
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+		if Html.Journal.Status != models.GLJournalStatusCreated {
+			log.Printf("Only created journal can be edited, journal:", journalId)
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+		// Load lines;
+		var journalLines []models.GLJournalEntry
+		err = core.DBEngine.Table("gl_journal_entries").Where("journal_id=?", journalId).Find(&journalLines)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			log.Printf("Corrupt journal data of journal:", journalId)
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+		var lineArray [][]string
+		for _, line := range journalLines {
+			aLine := []string{line.Description, strconv.Itoa(int(line.AccountId)),
+				strconv.FormatFloat(float64(line.Debit), 'f', -1, 32),
+				strconv.FormatFloat(float64(line.Credit), 'f', -1, 32)}
+			lineArray = append(lineArray, aLine)
+		}
+		bstr, err := json.Marshal(lineArray)
+		if err != nil {
+			if core.Conf.Debug {
+				log.Println(err)
+			}
+			log.Printf("Corrupt journal data of journal, unable to marsh JSON data:", journalId)
+			http.Redirect(w, r, "/", http.StatusNotFound)
+			return
+		}
+		Html.JournalLines = string(bstr)
+	}
 	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_journals_editor.html").Execute(w, Html)
 	if err != nil {
 		log.Println(err)
@@ -1271,4 +1325,61 @@ func (this GLApp) journalDetail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title        string
+		Sobs         []models.GLSetOfBook
+		Periods      []models.GLPeriod
+		Accounts     []models.GLAccount
+		Journal      models.GLJournal
+		JournalLines string
+		Act          string
+		Info         struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=journalApprove")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	session := webcore.AclGetSession(r)
+	if session == nil {
+		log.Printf("Illegal visit of gl.html?act=journalApprove")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	// Load Journal to Approve;
+	ok, err := core.DBEngine.Table("gl_journals").Where("id=?", journalId).Get(&Html.Journal)
+	if !ok {
+		if err != nil && core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=journalApprove")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	if Html.Journal.Status != models.GLJournalStatusCreated {
+		log.Printf("Only created journal can be approved, journal:", journalId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Journal.Status = models.GLJournalStatusApproved
+	Html.Journal.ApprovedBy = session.User.NickName
+	_, err = core.DBEngine.Table("gl_journals").Where("id=?", journalId).Update(&Html.Journal)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Fail to save journal, journal id:", journalId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	urlRedirect := fmt.Sprintf("/gl.html?act=journalDetail&id=%d", journalId)
+	http.Redirect(w, r, urlRedirect, http.StatusFound)
 }

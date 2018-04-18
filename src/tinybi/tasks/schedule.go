@@ -20,12 +20,21 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package tasks
 
-import (
-	"tinybi/webcore"
-)
+type Handler interface {
+	Exec(...interface{})
+}
 
-//Example web task;
-func ExampleTask(t *webcore.Task) error {
-	t.Done()
-	return nil
+type BaseHandler struct {
+	//
+}
+
+func (this BaseHandler) Exec(...interface{}) {
+	//
+}
+
+//Defined tasks below
+var RegTasks map[string]Handler
+
+func init() {
+	RegTasks = make(map[string]Handler)
 }

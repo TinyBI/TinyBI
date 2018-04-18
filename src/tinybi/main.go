@@ -45,6 +45,7 @@ func main() {
 		log.Println(core.Conf)
 	}
 	initData()
+	core.Scheduler.Start()
 	webcore.InitTemplate()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.App.Web.Host, nil))

@@ -59,7 +59,10 @@
 								    <div class="form-group">
 										<label>Voucher No.(Left empty to generate it automatically)</label>
 								        <input class="form-control" placeholder="Voucher No." id="voucher" name="voucher"
-								        type="text" value="{{ .Journal.Voucher}}" autofocus>
+								        type="text" value="{{ .Journal.Voucher}}" autofocus 
+										{{if ne .Journal.Id 0}}
+										readOnly
+										{{end}}>
 								    </div>
 									<div class="form-group">
                                             <label>Description</label>
@@ -120,6 +123,10 @@ $(document).ready(function() {
 		first_row: false,
 		row_template: ['text', 'accounts', 'text', 'text'],
 	});
+	//Load data when editing;
+	{{if ne .Journal.Id 0}}
+		eTable.loadJsonData({{ .JournalLines}});
+	{{end}}
 });
 function getFormData(form){
     var unindexed_array = $(form).serializeArray();

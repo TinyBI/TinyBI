@@ -70,10 +70,11 @@
 						</div>
 						<div class="panel-footer">
 							{{if eq .JournalInfo.Header.Status "CREATED"}}
-								<a class="btn btn-default" href="#">{{gettext "Approve"}}</a>
+								<a class="btn btn-default" href="/gl.html?act=journalEdit&id={{.JournalInfo.Header.Id}}">{{gettext "Edit"}}</a>
+								<a class="btn btn-default" href="/gl.html?act=journalApprove&id={{.JournalInfo.Header.Id}}">{{gettext "Approve"}}</a>
 							{{end}}
 							{{if eq .JournalInfo.Header.Status "APPROVED"}}
-								<a class="btn btn-default" href="#">{{gettext "Accounting"}}</a>
+								<a class="btn btn-default" href="/gl.html?act=journalAccount&id={{.JournalInfo.Header.Id}}">{{gettext "Accounting"}}</a>
 							{{end}}
 						</div>
 					</div>

@@ -112,6 +112,7 @@ type GLJournalEntry struct {
 //Balances;
 type GLBalance struct {
 	Id          int64     `xorm:"'id'" json:"_"`
+	SobId       int64     `xorm:"sob_id" json:"sob_id"`
 	PeriodId    int64     `xorm:"'period_id'" json:"period_id"`
 	AccountId   int64     `xorm:"'account_id'" json:"account_id"`
 	Status      string    `xorm:"'status'" json:"status"`

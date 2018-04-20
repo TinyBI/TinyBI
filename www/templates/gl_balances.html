@@ -1,0 +1,67 @@
+{{template "header" .}}
+<script src="/public/vendor/jquery-printthis/js/printThis.js"></script>
+<script src="/public/vendor/jquery-numberformatter/js/jshashtable-3.0.js"></script>
+<script src="/public/vendor/jquery-numberformatter/js/jquery.numberformatter.js"></script>
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext "Balances"}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="#" onclick="PrintList()">{{gettext "Print"}}</a>
+                        </div>
+						<div class="panel-body">
+						<form id="jeForm" role="form" action="/gl.html?act=changeSob&id=0" method="post">
+							<fieldset>
+								<div class="form-group">
+									<label>Set of book</label>
+									<select id="sob" name="sob" class="form-control">
+									{{range $k, $sob := .Sobs }}
+										<option value="{{$sob.Id}}">{{$sob.SobName}}</option>
+									{{end}}
+									</select>
+								</div>
+							</fieldset>
+						</form>
+							<table width="100%" class="table table-striped table-bordered table-hover" id="DataList">
+                                <thead>
+                                    <tr>
+                                        <th>{{gettext "Period"}}</th>
+                                        <th>{{gettext "Debit"}}</th>
+										<th>{{gettext "Credit"}}</th>
+										<th>{{gettext "Detail"}}</th>
+                                    </tr>
+                                </thead>
+								<tbody>
+								</tbody>
+								</table>
+						</div>
+					</div>
+				</div>
+</div>
+<script src="/public/vendor/datatables/js/jquery.dataTables.min.js"></script>
+<script src="/public/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+<script src="/public/vendor/datatables-responsive/dataTables.responsive.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	var sobId=$("#sob").val();
+    $('#DataList').DataTable( {
+		"ajax": "/gl.html?act=balanceList&sobId="+sobId,
+		"responsive": true,
+		"columnDefs": [
+	       { "render": $.fn.dataTable.render.number(',', '.', 2, '') , "targets": [1,2] }
+	     ]
+	});
+});
+$("#sob").change(function(){
+	var sobId=$("#sob").val();
+	$('#DataList').DataTable().ajax.url("/gl.html?act=balanceList&sobId="+sobId).load();
+}); 
+function PrintList(){
+	$("#DataList").printThis({importCSS: true, importStyle: true
+		});
+}
+</script>
+{{template "footer"}}

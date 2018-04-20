@@ -119,6 +119,14 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_JES_ACCOUNT", "/login.html")
 			this.journalAccounting(w, r)
 			break
+		case "balances":
+			webcore.AclCheckRedirect(w, r, "GL_BALANCES_R", "/login.html")
+			this.balancePage(w, r)
+			break
+		case "balanceList":
+			webcore.AclCheckRedirect(w, r, "GL_BALANCES_R", "/login.html")
+			this.balanceList(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -1475,6 +1483,7 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 			} else {
 				//Insert new balance line;
 				glBalance.AccountId = line.AccountId
+				glBalance.SobId = Html.Journal.SobId
 				glBalance.PeriodId = Html.Journal.PeriodId
 				glBalance.Credit = line.Credit
 				glBalance.Debit = line.Debit
@@ -1509,4 +1518,61 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 	}
 	urlRedirect := fmt.Sprintf("/gl.html?act=journalDetail&id=%d", journalId)
 	http.Redirect(w, r, urlRedirect, http.StatusFound)
+}
+
+func (this GLApp) balancePage(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title string
+		Sobs  []models.GLSetOfBook
+	}
+	core.DBEngine.Table("gl_set_of_books").Where("1=1").Find(&Html.Sobs)
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_balances.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func (this GLApp) balanceList(w http.ResponseWriter, r *http.Request) {
+	nullRet := `{"data":[]}`
+	sobId, err := strconv.Atoi(r.URL.Query().Get("sobId"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=balanceList")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	var fullRet struct {
+		Data []struct {
+			Period   string  `json:"0"`
+			Debit    float32 `json:"1"`
+			Credit   float32 `json:"2"`
+			EditLink string  `json:"3"`
+		} `json:"data"`
+	}
+	var balanceInfos []struct {
+		PeriodId   int64
+		PeriodName string
+		Debit      float32
+		Credit     float32
+	}
+	err = core.DBEngine.Table("gl_balances").Select("gl_balances.period_id, gl_periods.period_name, sum(debit) AS debit, sum(credit) AS credit").Join(
+		"INNER", "gl_periods", "gl_balances.period_id=gl_periods.id").Where(
+		"sob_id=?", sobId).GroupBy("gl_balances.period_id").Find(&balanceInfos)
+	if err != nil {
+		w.Write([]byte(nullRet))
+		return
+	}
+	for _, balanceInfo := range balanceInfos {
+		var balanceRow struct {
+			Period   string  `json:"0"`
+			Debit    float32 `json:"1"`
+			Credit   float32 `json:"2"`
+			EditLink string  `json:"3"`
+		}
+		balanceRow.Period = balanceInfo.PeriodName
+		balanceRow.Debit = balanceInfo.Debit
+		balanceRow.Credit = balanceInfo.Credit
+		balanceRow.EditLink = ""
+		fullRet.Data = append(fullRet.Data, balanceRow)
+	}
+	w.Write([]byte(webcore.JsonEncode(fullRet)))
 }

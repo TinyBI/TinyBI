@@ -115,6 +115,10 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			webcore.AclCheckRedirect(w, r, "GL_JES_APPROVE", "/login.html")
 			this.journalApprove(w, r)
 			break
+		case "journalAccount":
+			webcore.AclCheckRedirect(w, r, "GL_JES_ACCOUNT", "/login.html")
+			this.journalAccounting(w, r)
+			break
 		default:
 			//404
 			http.Redirect(w, r, "/", http.StatusNotFound)
@@ -1122,6 +1126,16 @@ func (this GLApp) journalEdit(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(webcore.JsonEncode(ret)))
 		return
 	}
+	//Check whether the journal date is in the period;
+	journalTimeStr := header.JournalDate
+	journalTimeStr += " 00:00:00"
+	journalTime := core.UnixTime(journalTimeStr)
+	if journalTime < period.StartTime || journalTime >= period.EndTime {
+		ret.Status = "failed"
+		ret.Message = "Illegal journal date, out of period"
+		w.Write([]byte(webcore.JsonEncode(ret)))
+		return
+	}
 	header.LastUpdated = time.Now()
 	if header.Id == 0 {
 		_, err = core.DBEngine.Table("gl_journals").Insert(&header)
@@ -1371,6 +1385,7 @@ func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
 	}
 	Html.Journal.Status = models.GLJournalStatusApproved
 	Html.Journal.ApprovedBy = session.User.NickName
+	Html.Journal.ApprovedDate = core.NowTime()
 	_, err = core.DBEngine.Table("gl_journals").Where("id=?", journalId).Update(&Html.Journal)
 	if err != nil {
 		if core.Conf.Debug {
@@ -1379,6 +1394,118 @@ func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Fail to save journal, journal id:", journalId)
 		http.Redirect(w, r, "/", http.StatusNotFound)
 		return
+	}
+	urlRedirect := fmt.Sprintf("/gl.html?act=journalDetail&id=%d", journalId)
+	http.Redirect(w, r, urlRedirect, http.StatusFound)
+}
+
+func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
+	var Html struct {
+		Title        string
+		Sobs         []models.GLSetOfBook
+		Periods      []models.GLPeriod
+		Accounts     []models.GLAccount
+		Journal      models.GLJournal
+		JournalLines string
+		Act          string
+		Info         struct {
+			Show    bool
+			Type    string
+			Message string
+		}
+	}
+	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=journalApprove")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	session := webcore.AclGetSession(r)
+	if session == nil {
+		log.Printf("Illegal visit of gl.html?act=journalApprove")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	// Load Journal to Account;
+	ok, err := core.DBEngine.Table("gl_journals").Where("id=?", journalId).Get(&Html.Journal)
+	if !ok {
+		if err != nil && core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=journalAccount")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	if Html.Journal.Status != models.GLJournalStatusApproved {
+		log.Printf("Only approved journal can be accounted, journal:", journalId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	Html.Journal.Status = models.GLJournalStatusAccounted
+	Html.Journal.AccountedBy = session.User.NickName
+	Html.Journal.AccountedDate = core.NowTime()
+	_, err = core.DBEngine.Table("gl_journals").Where("id=?", journalId).Update(&Html.Journal)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Fail to save journal, journal id:", journalId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	//Push data into balance;
+	var lines []models.GLJournalEntry
+	err = core.DBEngine.Table("gl_journal_entries").Where("journal_id=?", Html.Journal.Id).Find(&lines)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=journalAccount")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	for _, line := range lines {
+		var glBalance models.GLBalance
+		ok, err := core.DBEngine.Table("gl_balances").Where("period_id=?", Html.Journal.PeriodId).And("account_id=?", line.AccountId).Get(&glBalance)
+		if !ok {
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+			} else {
+				//Insert new balance line;
+				glBalance.AccountId = line.AccountId
+				glBalance.PeriodId = Html.Journal.PeriodId
+				glBalance.Credit = line.Credit
+				glBalance.Debit = line.Debit
+				glBalance.Status = "CREATED"
+				glBalance.LastUpdated = time.Now()
+				_, err = core.DBEngine.Table("gl_balances").Insert(&glBalance)
+				if err != nil {
+					if core.Conf.Debug {
+						log.Println(err)
+					}
+					log.Printf("Cannot created balance, journal line:", line.Id)
+					http.Redirect(w, r, "/", http.StatusNotFound)
+					return
+				}
+			}
+		} else {
+			//Update exists balance line;
+			glBalance.Credit += line.Credit
+			glBalance.Debit += line.Debit
+			glBalance.Status = "UPDATED"
+			glBalance.LastUpdated = time.Now()
+			_, err = core.DBEngine.Table("gl_balances").Where("id=?", glBalance.Id).Update(&glBalance)
+			if err != nil {
+				if core.Conf.Debug {
+					log.Println(err)
+				}
+				log.Printf("Only update balance, journal line:", line.Id)
+				http.Redirect(w, r, "/", http.StatusNotFound)
+				return
+			}
+		}
 	}
 	urlRedirect := fmt.Sprintf("/gl.html?act=journalDetail&id=%d", journalId)
 	http.Redirect(w, r, urlRedirect, http.StatusFound)

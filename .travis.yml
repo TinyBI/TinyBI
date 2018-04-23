@@ -20,4 +20,4 @@ before_script:
   - go get github.com/satori/go.uuid 
 
 script:
-  - GOPATH= `pwd` go install tinybi
+  - GOPATH=`pwd` go install tinybi

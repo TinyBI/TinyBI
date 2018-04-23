@@ -1,5 +1,8 @@
 # TinyBI
-Openource BI Report System
+
+[![Travis Build Status](https://travis-ci.org/TinyBI/TinyBI.svg?branch=master)
+
+Openource BI Report System, simple and powerful
 
 ### Features
 - Scheduled Concurrent Tasks

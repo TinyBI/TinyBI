@@ -18,3 +18,6 @@ before_script:
   - go get github.com/jinzhu/now 
   - go get github.com/chai2010/gettext-go/gettext 
   - go get github.com/satori/go.uuid 
+
+script:
+  -go install tinybi

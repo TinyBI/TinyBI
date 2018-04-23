@@ -16,5 +16,5 @@ before_script:
   - go get github.com/go-xorm/core
   - go get github.com/jasonlvhit/gocron 
   - go get github.com/jinzhu/now 
-  - go get github.com/chai2010/gettext-go 
+  - go get github.com/chai2010/gettext-go/gettext 
   - go get github.com/satori/go.uuid 

@@ -22,6 +22,7 @@ package tasks
 
 import (
 	"log"
+	"strconv"
 	"tinybi/core"
 	"tinybi/models"
 )
@@ -41,7 +42,7 @@ func (this BaseHandler) Exec(...interface{}) {
 //Defined tasks below
 //Steps to run a task:
 //I, create a object (tasker) that implements tasks.Handler;
-//II, register it with tasks.RegTasks[name]=tasker;
+//II, register it with tasks.RegTasks[name]=tasker (at reg.go);
 //III, write a record to core_tasks;
 
 var RegTasks map[string]Handler
@@ -52,9 +53,7 @@ func init() {
 
 func ReloadScheduledTasks() {
 	//Unload all tasks first;
-	for _, task := range RegTasks {
-		core.Scheduler.Remove(task.Exec)
-	}
+	core.Scheduler.Clear()
 	//Read configurations from DB;
 	var tasks []models.CoreTasks
 	err := core.DBEngine.Table("core_tasks").Where("enabled='YES'").Find(&tasks)
@@ -65,35 +64,56 @@ func ReloadScheduledTasks() {
 		}
 	}
 	for _, task := range tasks {
+		if core.Conf.Debug {
+			log.Println(task)
+		}
 		rTask, ok := RegTasks[task.TaskName]
 		if ok {
 			switch task.ScheduleType {
+			case "SECONDS":
+				interval, err := strconv.Atoi(task.ScheduleAt)
+				if err == nil {
+					core.Scheduler.Every(uint64(interval)).Seconds().Do(func() { rTask.Exec() })
+				}
+				if core.Conf.Debug {
+					log.Println("Installed task", task.TaskName, "for", interval, "seconds")
+				}
+				break
+			case "MINUTES":
+				interval, err := strconv.Atoi(task.ScheduleAt)
+				if err == nil {
+					core.Scheduler.Every(uint64(interval)).Minutes().Do(func() { rTask.Exec() })
+				}
+				if core.Conf.Debug {
+					log.Println("Installed task", task.TaskName, "for", interval, "minutes")
+				}
+				break
 			case "HOURLY":
-				core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "DAILY":
-				core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "MONDAY":
-				core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "TUESDAY":
-				core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "WEDNESDAY":
-				core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "THURSDAY":
-				core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "FRIDAY":
-				core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "SATURDAY":
-				core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			case "SUNDAY":
-				core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(rTask.Exec)
+				core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
 				break
 			}
 		}

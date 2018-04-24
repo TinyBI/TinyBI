@@ -46,9 +46,7 @@ func main() {
 		log.Println(core.Conf)
 	}
 	initData()
-	core.Scheduler.Start()
-	//Reload tasks per five minutes;
-	core.Scheduler.Every(5).Minutes().Do(tasks.ReloadScheduledTasks)
+	initScheduler()
 	webcore.InitTemplate()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.App.Web.Host, nil))
@@ -95,6 +93,13 @@ func initApp(confPath string) {
 		log.Fatal(err)
 	}
 	core.DB = core.DBEngine.DB().DB
+}
+
+func initScheduler() {
+	tasks.RegScheduleTasks()
+	core.Scheduler.Start()
+	//Reload tasks per five minutes;
+	core.Scheduler.Every(5).Minutes().Do(tasks.ReloadScheduledTasks)
 }
 
 func initData() {

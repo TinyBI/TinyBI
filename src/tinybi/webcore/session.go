@@ -283,3 +283,20 @@ func UpdateMyProfile(session *Session, info UserInfo, password string, newPasswo
 	}
 	return false, "Wrong password"
 }
+
+func GcSession() {
+	if core.Conf.Debug {
+		log.Println("Webcore::GcSession Start")
+	}
+	for _, session := range sessions {
+		if session.Expire < time.Now().Unix() {
+			if core.Conf.Debug {
+				log.Println("Webcore::GcSession> Remove expired session:", session.SessionId)
+			}
+			RemoveSession(session)
+		}
+	}
+	if core.Conf.Debug {
+		log.Println("Webcore::GcSession End")
+	}
+}

@@ -20,6 +20,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package tasks
 
+import (
+	"log"
+	"tinybi/core"
+	"tinybi/models"
+)
+
 type Handler interface {
 	Exec(...interface{})
 }
@@ -33,8 +39,63 @@ func (this BaseHandler) Exec(...interface{}) {
 }
 
 //Defined tasks below
+//Steps to run a task:
+//I, create a object (tasker) that implements tasks.Handler;
+//II, register it with tasks.RegTasks[name]=tasker;
+//III, write a record to core_tasks;
+
 var RegTasks map[string]Handler
 
 func init() {
 	RegTasks = make(map[string]Handler)
+}
+
+func ReloadScheduledTasks() {
+	//Unload all tasks first;
+	for _, task := range RegTasks {
+		core.Scheduler.Remove(task.Exec)
+	}
+	//Read configurations from DB;
+	var tasks []models.CoreTasks
+	err := core.DBEngine.Table("core_tasks").Where("enabled='YES'").Find(&tasks)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+			return
+		}
+	}
+	for _, task := range tasks {
+		rTask, ok := RegTasks[task.TaskName]
+		if ok {
+			switch task.ScheduleType {
+			case "HOURLY":
+				core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "DAILY":
+				core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "MONDAY":
+				core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "TUESDAY":
+				core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "WEDNESDAY":
+				core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "THURSDAY":
+				core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "FRIDAY":
+				core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "SATURDAY":
+				core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			case "SUNDAY":
+				core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(rTask.Exec)
+				break
+			}
+		}
+	}
 }

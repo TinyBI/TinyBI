@@ -31,6 +31,7 @@ import (
 	"tinybi/apps"
 	"tinybi/core"
 	"tinybi/models"
+	"tinybi/tasks"
 	"tinybi/webcore"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -46,6 +47,8 @@ func main() {
 	}
 	initData()
 	core.Scheduler.Start()
+	//Reload tasks per five minutes;
+	core.Scheduler.Every(5).Minutes().Do(tasks.ReloadScheduledTasks)
 	webcore.InitTemplate()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.App.Web.Host, nil))

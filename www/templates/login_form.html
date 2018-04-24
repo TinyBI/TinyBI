@@ -77,27 +77,18 @@
                                 </div>
                                 <div class="form-group">
                                     <input class="form-control" placeholder="Password" name="password" type="password" value="">
-                                </div>
-                                <div class="checkbox">
-                                    <label>
-                                        <input name="remember" type="checkbox" value="Remember Me">Remember Me
-                                    </label>
-                                </div>
-                                <!-- Change this to a button or input when using this as a form -->
-                                <a onclick="document.getElementById('login').submit();return false" class="btn btn-lg btn-success btn-block">{{gettext "Login"}}</a>
-							 <div class="form-group">
-    							<div class="col-md-8">{{gettext "Choose language"}}</div>
-    							<div class="col-md-4 text-right">
-								<a href="/login.html?act=setLang&lang=en_US">
-									<img src="/public/image/flags/us.png">
-								</a>
-								<a href="/login.html?act=setLang&lang=zh_CN">
-									<img src="/public/image/flags/cn.png">
-								</a>
-								</div>
-  							</div>
+                                </div>  
+								<a onclick="document.getElementById('login').submit();return false" class="btn btn-lg btn-success btn-block">{{gettext "Login"}}</a>
 							</fieldset>
                         </form>
+                    </div>
+					<div class="panel-footer text-right">
+                        <a class="btn btn-circle" href="/login.html?act=setLang&lang=en_US">
+							<img style="margin:-8px;width:34px;height:34px" src="/public/image/flags/United States.png">
+						</a>
+						<a class="btn btn-circle" href="/login.html?act=setLang&lang=zh_CN">
+							<img style="margin:-8px;width:34px;height:34px" src="/public/image/flags/China.png">
+						</a>
                     </div>
                 </div>
             </div>

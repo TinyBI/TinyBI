@@ -77,7 +77,7 @@ func (this *TasksModel) NewTask(r *http.Request) *ConcurrentTask {
 func (this *TasksModel) NewSystemTask() *ConcurrentTask {
 	task := new(ConcurrentTask)
 	task.Status = TaskStatusPending
-	task.OwnerId = 0
+	task.OwnerId = 1
 	task.Owner = "System"
 	return task
 }
@@ -86,13 +86,12 @@ func (this *ConcurrentTask) Push() error {
 	if this.Id != 0 {
 		return errors.New("The task has already been pushed")
 	}
-	insertId, err := core.DBEngine.Table("core_concurrent_tasks").Insert(this)
+	_, err := core.DBEngine.Table("core_concurrent_tasks").Insert(this)
 	if err != nil {
 		if core.Conf.Debug {
 			log.Println(err)
 		}
 	}
-	this.Id = insertId
 	return nil
 }
 
@@ -110,6 +109,7 @@ func (this *ConcurrentTask) Start() error {
 func (this *ConcurrentTask) Done() error {
 	this.EndTime = time.Now().Format("2006-01-02 15:04:05")
 	this.Status = TaskStatusDone
+	this.Percentage = 100
 	return this.Save()
 }
 

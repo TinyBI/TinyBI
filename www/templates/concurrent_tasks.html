@@ -13,11 +13,13 @@
 							<table width="100%" class="table table-striped table-bordered table-hover" id="DataList">
                                 <thead>
                                     <tr>
-                                        <th>{{gettext "Task Status"}}</th>
+                                        <th>{{gettext "Task ID"}}</th>
                                         <th>{{gettext "Task Description"}}</th>
+										<th>{{gettext "Task Status"}}</th>
+										<th>{{gettext "Percentage"}}</th>
                                         <th>{{gettext "Start Time"}}</th>
                                         <th>{{gettext "End Time"}}</th>
-                                        <th>{{gettext "Operation"}}</th>
+                                        <th>{{gettext "Owner"}}</th>
                                     </tr>
                                 </thead>
 								<tbody>
@@ -39,7 +41,13 @@ $(document).ready(function() {
     $('#DataList').DataTable( {
         "ajax": '/concurrentTasks.html?act=list',
 		"order": [[ 0, "desc" ]],
-		"responsive": true
+		"responsive": true,
+		"columnDefs": [ {
+		    "targets": 3,
+		    "render": function ( data, type, row, meta ) {
+		      return  '<div class="progress progress-striped active"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+data+'" style="width:'+data+'%"></div></div>';
+		    }
+		} ]
     } );
 } );
 </script>

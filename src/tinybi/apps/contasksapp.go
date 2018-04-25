@@ -21,10 +21,10 @@
 package apps
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"tinybi/core"
+	"tinybi/models"
 	"tinybi/webcore"
 )
 
@@ -33,15 +33,13 @@ type ConcurrentTasksApp struct {
 }
 
 type concurrentTask struct {
-	Id          int     `json:"0"`
+	Id          int64   `json:"0"`
 	Description string  `json:"1"`
 	Status      string  `json:"2"`
 	Percentage  float32 `json:"3"`
 	StartTime   string  `json:"4"`
 	EndTime     string  `json:"5"`
-	LastUpdated int64   `json:"6"`
-	Owner       string  `json:"7"`
-	OwnerId     int     `json:"8"`
+	Owner       string  `json:"6"`
 }
 
 func (this ConcurrentTasksApp) Dispatch(w http.ResponseWriter, r *http.Request) {
@@ -80,38 +78,27 @@ func (this ConcurrentTasksApp) list(w http.ResponseWriter, r *http.Request) {
 	var fullRet struct {
 		Data []concurrentTask `json:"data"`
 	}
-	//Return JSON Data;
-	sql := "SELECT id, description, `status`, percentage, start_time, end_time, last_updated, `owner`, owner_id "
-	sql += "FROM core_concurrent_tasks "
-	sql += "WHERE owner_id = ?"
 	session := webcore.AclGetSession(r)
-	row, err := core.DB.Query(sql, session.User.Id)
-	if err != nil {
-		if core.Conf.Debug {
-			log.Println("Fail to query SQL", err)
-		}
+	if session == nil {
 		w.Write([]byte(nullRet))
 		return
 	}
-	defer row.Close()
-	tasks := make([]concurrentTask, 0)
-	for row.Next() {
-		task := concurrentTask{}
-		err = row.Scan(&task.Id, &task.Description, &task.Status,
-			&task.Percentage, &task.StartTime,
-			&task.EndTime, &task.LastUpdated, &task.Owner,
-			&task.OwnerId)
-		if err != nil {
-			w.Write([]byte(nullRet))
-			return
-		}
-		tasks = append(tasks, task)
-	}
-	fullRet.Data = tasks
-	sret, err := json.Marshal(fullRet)
+	var tasks []models.ConcurrentTask
+	err := core.DBEngine.Table("core_concurrent_tasks").Where("owner_id=?", session.User.Id).Find(&tasks)
 	if err != nil {
 		w.Write([]byte(nullRet))
 		return
 	}
-	w.Write(sret)
+	for _, task := range tasks {
+		var taskRow concurrentTask
+		taskRow.Id = task.Id
+		taskRow.Description = task.Description
+		taskRow.EndTime = task.EndTime
+		taskRow.Owner = task.Owner
+		taskRow.Percentage = task.Percentage
+		taskRow.StartTime = task.StartTime
+		taskRow.Status = task.Status
+		fullRet.Data = append(fullRet.Data, taskRow)
+	}
+	w.Write([]byte(webcore.JsonEncode(fullRet)))
 }

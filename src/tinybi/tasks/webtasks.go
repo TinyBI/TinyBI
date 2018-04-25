@@ -23,6 +23,7 @@ package tasks
 import (
 	"log"
 	"tinybi/core"
+	"tinybi/models"
 	"tinybi/webcore"
 )
 
@@ -35,7 +36,12 @@ func (this WebSessionGc) Exec(...interface{}) {
 	if core.Conf.Debug {
 		log.Println("WebSessionGc::Exec Start")
 	}
+	task := models.WebTaskModel.NewSystemTask()
+	task.Description = "Clear expired sessions"
+	task.Push()
+	task.Start()
 	webcore.GcSession()
+	task.Done()
 	if core.Conf.Debug {
 		log.Println("WebSessionGc::Exec End")
 	}

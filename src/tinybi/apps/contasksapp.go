@@ -35,11 +35,11 @@ type ConcurrentTasksApp struct {
 type concurrentTask struct {
 	Id          int64   `json:"0"`
 	Description string  `json:"1"`
-	Status      string  `json:"2"`
-	Percentage  float32 `json:"3"`
-	StartTime   string  `json:"4"`
-	EndTime     string  `json:"5"`
-	Owner       string  `json:"6"`
+	Status      string  `json:"-"`
+	Percentage  float32 `json:"2"`
+	StartTime   string  `json:"3"`
+	EndTime     string  `json:"4"`
+	Owner       string  `json:"5"`
 }
 
 func (this ConcurrentTasksApp) Dispatch(w http.ResponseWriter, r *http.Request) {

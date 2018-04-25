@@ -15,11 +15,11 @@
                                     <tr>
                                         <th>{{gettext "Task ID"}}</th>
                                         <th>{{gettext "Task Description"}}</th>
-										<th>{{gettext "Task Status"}}</th>
 										<th>{{gettext "Percentage"}}</th>
                                         <th>{{gettext "Start Time"}}</th>
                                         <th>{{gettext "End Time"}}</th>
                                         <th>{{gettext "Owner"}}</th>
+										<th>{{gettext "Operation"}}</th>
                                     </tr>
                                 </thead>
 								<tbody>
@@ -43,11 +43,17 @@ $(document).ready(function() {
 		"order": [[ 0, "desc" ]],
 		"responsive": true,
 		"columnDefs": [ {
-		    "targets": 3,
+		    "targets": [2],
 		    "render": function ( data, type, row, meta ) {
 		      return  '<div class="progress progress-striped active"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+data+'" style="width:'+data+'%"></div></div>';
-		    }
-		} ]
+		    	}
+			},
+			{"targets": [6],
+			    "render": function ( data, type, row, meta ) {
+			      return  '<a href=#>Download</a>';
+			    	}
+			}
+		 ]
     } );
 } );
 </script>

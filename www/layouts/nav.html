@@ -247,9 +247,9 @@
             <div class="navbar-default sidebar" role="navigation">
                 <div class="sidebar-nav navbar-collapse">
                     <ul class="nav" id="side-menu">
-                        <li class="sidebar-search">
+                        <li class="sidebar-search" id="searchbox">
                             <div class="input-group custom-search-form">
-                                <input type="text" class="form-control" placeholder="Search...">
+                                <input type="text" class="form-control" id="keywords" onkeyup="filterMenu()" placeholder="Search...">
                                 <span class="input-group-btn">
                                 <button class="btn btn-default" type="button">
                                     <i class="fa fa-search"></i>
@@ -303,4 +303,36 @@
             </div>
             <!-- /.navbar-static-side -->
         </nav>
+<script>
+function filterMenu(){
+	 // Declare variables
+    var input, filter, ul, li, a, i;
+    var input = document.getElementById('keywords');
+    var filter = input.value.toUpperCase();
+    var nav = document.getElementById("side-menu");
+	var ul = nav.getElementsByTagName('ul');
+	for (j=0; j<ul.length; j++) {
+    	var li = ul[j].getElementsByTagName('li');
+		console.log(li);
+		if (li.id == "searchbox"){
+			continue;
+		}
+	    // Loop through all list items, and hide those who don't match the search query
+	    for (i = 0; i < li.length; i++) {
+	        var a = li[i].getElementsByTagName("a")[0];
+			if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+				ul[j].className = "nav nav-second-level collapse in";
+				ul[j].setAttribute("aria-expanded","true");
+				li[i].className = "active";
+	            li[i].style.display = "";
+	        } else {
+				ul[j].className = "nav nav-second-level collapse";
+				ul[j].setAttribute("aria-expanded","false");
+				li[i].className = "";
+	            li[i].style.display = "none";
+	        }
+	    }
+	}
+}
+</script>
 {{end}}

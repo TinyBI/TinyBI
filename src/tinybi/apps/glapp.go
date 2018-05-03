@@ -126,6 +126,9 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 		case "balanceList":
 			webcore.AclCheckRedirect(w, r, "GL_BALANCES_R", "/login.html")
 			this.balanceList(w, r)
+		case "balanceDetail":
+			webcore.AclCheckRedirect(w, r, "GL_BALANCES_R", "/login.html")
+			this.balanceDetail(w, r)
 			break
 		default:
 			//404
@@ -1571,8 +1574,66 @@ func (this GLApp) balanceList(w http.ResponseWriter, r *http.Request) {
 		balanceRow.Period = balanceInfo.PeriodName
 		balanceRow.Debit = balanceInfo.Debit
 		balanceRow.Credit = balanceInfo.Credit
-		balanceRow.EditLink = ""
+		balanceRow.EditLink = fmt.Sprintf("<p class='fa fa-eye'><a href='/gl.html?act=balanceDetail&sobId=%d&periodId=%d'>View</a></P>", sobId, balanceInfo.PeriodId)
 		fullRet.Data = append(fullRet.Data, balanceRow)
 	}
 	w.Write([]byte(webcore.JsonEncode(fullRet)))
+}
+
+func (this GLApp) balanceDetail(w http.ResponseWriter, r *http.Request) {
+	periodId, err := strconv.Atoi(r.URL.Query().Get("periodId"))
+	if err != nil {
+		log.Printf("Illegal visit of gl.html?act=balanceDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	SobId := r.URL.Query().Get("sobId")
+	if SobId == "" {
+		log.Printf("Illegal visit of gl.html?act=balanceDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	var Html struct {
+		Title       string
+		Period      models.GLPeriod
+		BalanceInfo []struct {
+			Balance models.GLBalance `xorm:"extends"`
+			Account models.GLAccount `xorm:"extends"`
+		}
+		Debit  float32
+		Credit float32
+	}
+	ok, err := core.DBEngine.Table("gl_periods").Where("id=?", periodId).Get(&Html.Period)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=balanceDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	if !ok {
+		log.Printf("Illegal visit of gl.html?act=balanceDetail, No such period:", periodId)
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	err = core.DBEngine.Table("gl_balances").Where("gl_balances.period_id=?", periodId).Join(
+		"INNER", "gl_accounts", "gl_balances.account_id=gl_accounts.id").And("gl_balances.sob_id=?", SobId).Find(&Html.BalanceInfo)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+		log.Printf("Illegal visit of gl.html?act=balanceDetail")
+		http.Redirect(w, r, "/", http.StatusNotFound)
+		return
+	}
+	for _, balance := range Html.BalanceInfo {
+		Html.Debit += balance.Balance.Debit
+		Html.Credit += balance.Balance.Credit
+	}
+	Html.Title = "Balance Detail"
+	err = webcore.GetTemplate(w, webcore.GetUILang(w, r), "gl_balance_detail.html").Execute(w, Html)
+	if err != nil {
+		log.Println(err)
+	}
 }

@@ -22,21 +22,28 @@ package tasks
 
 import (
 	"log"
+	"sync"
 	"tinybi/core"
 	"tinybi/models"
 	"tinybi/webcore"
 )
 
-type WebSessionGc struct {
-	BaseHandler
+type WebSessionGcHanler struct {
+	baseHandler
 }
 
-func (this WebSessionGc) Exec(...interface{}) {
+func newWebSessionGcHanler() *WebSessionGcHanler {
+	handler := new(WebSessionGcHanler)
+	handler.mutex = new(sync.Mutex)
+	return handler
+}
+
+func (this WebSessionGcHanler) Exec(...interface{}) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 	//Clear timeout sessions;
 	if core.Conf.Debug {
-		log.Println("WebSessionGc::Exec Start")
+		log.Println("WebSessionGcHanler::Exec Start")
 	}
 	task := models.WebTaskModel.NewSystemTask()
 	task.Description = "Clear expired sessions"
@@ -45,6 +52,6 @@ func (this WebSessionGc) Exec(...interface{}) {
 	webcore.GcSession()
 	task.Done()
 	if core.Conf.Debug {
-		log.Println("WebSessionGc::Exec End")
+		log.Println("WebSessionGcHanler::Exec End")
 	}
 }

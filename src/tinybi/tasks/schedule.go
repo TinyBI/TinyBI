@@ -28,33 +28,34 @@ import (
 	"tinybi/models"
 )
 
-type Handler interface {
-	Init()
+type handler interface {
 	Exec(...interface{})
 }
 
-type BaseHandler struct {
+type baseHandler struct {
 	mutex *sync.Mutex
 }
 
-func (this BaseHandler) Init() {
-	this.mutex = new(sync.Mutex)
+func newHandler() *baseHandler {
+	handler := new(baseHandler)
+	handler.mutex = new(sync.Mutex)
+	return handler
 }
 
-func (this BaseHandler) Exec(...interface{}) {
+func (this baseHandler) Exec(...interface{}) {
 	//
 }
 
 //Defined tasks below
 //Steps to run a task:
-//I, create a object (tasker) that implements tasks.Handler;
+//I, create a object (tasker) that implements tasks.handler;
 //II, register it with tasks.RegTasks[name]=tasker (at reg.go);
 //III, write a record to core_tasks;
 
-var RegTasks map[string]Handler
+var RegTasks map[string]handler
 
 func init() {
-	RegTasks = make(map[string]Handler)
+	RegTasks = make(map[string]handler)
 }
 
 func ReloadScheduledTasks() {

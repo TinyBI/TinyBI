@@ -22,5 +22,7 @@ package tasks
 
 //Register tasks here;
 func RegScheduleTasks() {
-	RegTasks["WEBSESSION_GC"] = WebSessionGc{}
+	webSessionGc := WebSessionGc{}
+	webSessionGc.Init()
+	RegTasks["WEBSESSION_GC"] = webSessionGc
 }

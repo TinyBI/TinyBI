@@ -32,6 +32,8 @@ type WebSessionGc struct {
 }
 
 func (this WebSessionGc) Exec(...interface{}) {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
 	//Clear timeout sessions;
 	if core.Conf.Debug {
 		log.Println("WebSessionGc::Exec Start")

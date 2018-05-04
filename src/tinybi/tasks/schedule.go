@@ -23,16 +23,22 @@ package tasks
 import (
 	"log"
 	"strconv"
+	"sync"
 	"tinybi/core"
 	"tinybi/models"
 )
 
 type Handler interface {
+	Init()
 	Exec(...interface{})
 }
 
 type BaseHandler struct {
-	//
+	mutex *sync.Mutex
+}
+
+func (this BaseHandler) Init() {
+	this.mutex = new(sync.Mutex)
 }
 
 func (this BaseHandler) Exec(...interface{}) {

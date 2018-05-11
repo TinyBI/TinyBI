@@ -21,6 +21,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"tinybi/webcore"
 )
@@ -45,6 +46,10 @@ func (this modVersion) Dispatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this modVersion) showPage(w http.ResponseWriter, r *http.Request) {
+	err := webcore.GetTemplate(w, webcore.GetUILang(w, r), "version/index.html").Execute(w, nil)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 var ModVersion modVersion

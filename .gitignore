@@ -1,6 +1,7 @@
 # Binaries for programs and plugins
 bin/*
 pkg/*
+mods/*
 
 # Test binary, build with `go test -c`
 *.test

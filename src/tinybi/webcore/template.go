@@ -119,7 +119,9 @@ func InitTemplate() {
 	// Make menu cache
 	mDir, err := ioutil.ReadDir(core.Conf.App.Web.MenusPath)
 	menuCacheFile := filepath.Join(core.Conf.App.Web.PublicPath, "cache", "menu.html")
+	layoutsList = append(layoutsList, menuCacheFile)
 	var menuCache []byte
+	menuCache = append(menuCache, []byte("{{define \"menu_cache\"}}")...)
 	if err == nil {
 		for _, mFile := range mDir {
 			if !mFile.IsDir() && filepath.Ext(mFile.Name()) == ".html" {
@@ -134,6 +136,7 @@ func InitTemplate() {
 			}
 		}
 	}
+	menuCache = append(menuCache, []byte("{{end}}")...)
 	err = ioutil.WriteFile(menuCacheFile, menuCache, os.ModePerm)
 	if err != nil {
 		log.Println(err)

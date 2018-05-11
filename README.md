@@ -13,6 +13,10 @@ Openource BI Report System, simple and powerful
 
 ![Concurrent Tasks](https://github.com/TinyBI/TinyBI/raw/master/screenshots/currentTasks.png "Concurrent Tasks")
 
+- Version Page, loaded by module 
+
+![Version Page](https://github.com/TinyBI/TinyBI/raw/master/screenshots/versionModule.png "Version Page")
+
 ### Features
 - Scheduled Concurrent Tasks
 - RESTFUL APIs

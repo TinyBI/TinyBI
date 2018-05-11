@@ -7,6 +7,15 @@ MODSOURCES=src/mod/*.go
 WWWSUBDIRS=("www/public/cache")
 
 #Build Operation;
+build_mods (){
+	if [ ! -d $MODDIR ];then
+	        mkdir $MODDIR
+	fi
+	for f in $MODSOURCES; do
+		$GOBIN build -buildmode=plugin -o $MODDIR/`basename -s .go $f`.so $f
+	done
+}
+
 build (){
 	#Build main execution;
 	if [ ! -d pkg ]; then
@@ -19,12 +28,7 @@ build (){
 	fi
 	$GOBIN install $TARGET 
 	#Build modules;
-	if [ ! -d $MODDIR ];then
-	        mkdir $MODDIR
-	fi
-	for f in $MODSOURCES; do
-		$GOBIN build -buildmode=plugin -o $MODDIR/`basename -s .go $f`.so $f
-	done
+	build_mods
 	#Runtime directories;
 	for rdir in ${WWWSUBDIRS[*]}
 	do
@@ -43,12 +47,14 @@ clean (){
 
 #Show usage;
 usage (){
-	echo "Usage: build | clean"
+	echo "Usage: build | build_mods | clean"
 }
 
 case "$1" in
 	"build" )
 		build;;
+	"build_mods" )
+		build_mods;;
 	"clean" )
 		clean;;
 	* )

@@ -304,6 +304,11 @@
             <!-- /.navbar-static-side -->
         </nav>
 <script>
+$( document ).ready(function() {
+    $.get("/public/cache/menu.html", function(result){
+    		$("#side-menu").append(result);
+  });
+});
 function filterMenu(){
 	 // Declare variables
     var input, filter, ul, li, a, i;

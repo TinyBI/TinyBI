@@ -27,6 +27,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"plugin"
 	"strings"
 	"tinybi/apps"
 	"tinybi/core"
@@ -47,6 +48,7 @@ func main() {
 	}
 	initData()
 	initScheduler()
+	initMods()
 	webcore.InitTemplate()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.App.Web.Host, nil))
@@ -114,4 +116,48 @@ func initData() {
 		}
 	}
 	glModel.InitMasterPeriods()
+}
+
+func initMods() {
+	mDir, err := ioutil.ReadDir(core.Conf.App.Web.ModsPath)
+	if err == nil {
+		for _, mFile := range mDir {
+			if !mFile.IsDir() && filepath.Ext(mFile.Name()) == ".so" {
+				mPath := filepath.Join(core.Conf.App.Web.ModsPath, mFile.Name())
+				if core.Conf.Debug {
+					log.Println("Load module from:", mPath)
+				}
+				plug, err := plugin.Open(mPath)
+				if err == nil {
+					plugWebApp, err := plug.Lookup("ModWebApp")
+					if err != nil {
+						if core.Conf.Debug {
+							log.Println("Fail to load module from:", mPath)
+							log.Println(err)
+						}
+					} else {
+						webApp, ok := plugWebApp.(webcore.WebApp)
+						if !ok {
+							if core.Conf.Debug {
+								log.Println("Fail to load module from:", mPath)
+							}
+						} else {
+							route := "/mod_"
+							route += strings.TrimSuffix(mFile.Name(), filepath.Ext(mFile.Name()))
+							route += ".html"
+							apps.WebRoutes[route] = webApp
+							if core.Conf.Debug {
+								log.Println("Loaded module with route", route, "from", mFile.Name())
+							}
+						}
+					}
+				} else {
+					if core.Conf.Debug {
+						log.Println("Fail to load module from:", mPath)
+						log.Println(err)
+					}
+				}
+			}
+		}
+	}
 }

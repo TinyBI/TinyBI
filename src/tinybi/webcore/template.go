@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -38,7 +39,7 @@ type templateCache struct {
 	Expire   int64
 }
 
-var cache map[string]templateCache
+var cache map[string]map[string]templateCache
 var layoutsList []string
 
 func getText(input string) string {
@@ -46,17 +47,25 @@ func getText(input string) string {
 }
 
 func GetTemplate(w http.ResponseWriter, locale string, name string) *template.Template {
-	tmpName := filepath.Base(name)
-	temp, ok := cache[tmpName]
+	nameArray := strings.Split(name, "/")
+	if len(nameArray) == 1 {
+		realName := "core/"
+		realName += name
+		nameArray = strings.Split(realName, "/")
+	}
+	tmpName := nameArray[len(nameArray)-1]
+	if cache[nameArray[0]] == nil {
+		cache[nameArray[0]] = make(map[string]templateCache)
+	}
+	temp, ok := cache[nameArray[0]][tmpName]
 	if !ok || time.Now().Unix() > temp.Expire {
 		funcMap := template.FuncMap{
 			"gettext": getText,
 		}
 		//Load template with layouts from disk;
 		pName := make([]string, 0)
-		pName2 := strings.Split(name, "/")
 		pName = append(pName, core.Conf.App.Web.TemplatesPath)
-		pName = append(pName, pName2...)
+		pName = append(pName, nameArray...)
 		tFPath := filepath.Join(pName...)
 		filePaths := make([]string, 0)
 		filePaths = append(filePaths, tFPath)
@@ -72,9 +81,11 @@ func GetTemplate(w http.ResponseWriter, locale string, name string) *template.Te
 			log.Printf("*Fail to load template:%s\n", tFPath)
 			log.Println(err)
 			return nil
+		} else {
+			log.Println("*Loaded template:", tmpName, "from", tFPath)
 		}
 
-		cache[tmpName] = tempNew
+		cache[nameArray[0]][tmpName] = tempNew
 		temp = tempNew
 	}
 	gettext.SetLocale(locale)
@@ -104,5 +115,27 @@ func InitTemplate() {
 			}
 		}
 	}
-	cache = make(map[string]templateCache)
+	cache = make(map[string]map[string]templateCache)
+	// Make menu cache
+	mDir, err := ioutil.ReadDir(core.Conf.App.Web.MenusPath)
+	menuCacheFile := filepath.Join(core.Conf.App.Web.PublicPath, "cache", "menu.html")
+	var menuCache []byte
+	if err == nil {
+		for _, mFile := range mDir {
+			if !mFile.IsDir() && filepath.Ext(mFile.Name()) == ".html" {
+				mPath := filepath.Join(core.Conf.App.Web.MenusPath, mFile.Name())
+				if core.Conf.Debug {
+					log.Println("Load menu from:", mPath)
+				}
+				contents, err := ioutil.ReadFile(mPath)
+				if err == nil {
+					menuCache = append(menuCache, contents...)
+				}
+			}
+		}
+	}
+	err = ioutil.WriteFile(menuCacheFile, menuCache, os.ModePerm)
+	if err != nil {
+		log.Println(err)
+	}
 }

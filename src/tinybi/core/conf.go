@@ -34,11 +34,13 @@ type WebConf struct {
 	TemplateTimeout int64    `json:"template_timeout"`
 	Locales         []string `json:"locales"`
 	I18nPath        string   `json:"i18n_path"`
+	MenusPath       string   `json:"menus_path"`
 	LayoutsPath     string   `json:"layouts_path"`
 	TemplatesPath   string   `json:"templates_path"`
 	PublicPath      string   `json:"public_path"`
 	MaxTasksPerUser int      `json:"max_tasks_per_user"`
 	AclDefinePath   string   `json:"acl_define_path"`
+	ModsPath        string   `json:"mods_path"`
 }
 
 type SMTPConf struct {

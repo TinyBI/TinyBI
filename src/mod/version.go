@@ -52,4 +52,4 @@ func (this modVersion) showPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var ModVersion modVersion
+var ModWebApp modVersion

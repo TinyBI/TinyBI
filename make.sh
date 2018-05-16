@@ -5,6 +5,7 @@ TARGET=tinybi
 MODDIR=mods
 MODSOURCES=src/mod/*.go
 WWWSUBDIRS=("www/public/cache")
+GOPATH=`pwd`
 
 #Build Operation;
 build_mods (){
@@ -18,6 +19,7 @@ build_mods (){
 
 build (){
 	#Build main execution;
+	export GOPATH
 	if [ ! -d pkg ]; then
 		$GOGET github.com/go-sql-driver/mysql
 		$GOGET github.com/go-xorm/xorm

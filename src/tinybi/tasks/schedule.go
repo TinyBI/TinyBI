@@ -70,6 +70,16 @@ func (this *baseHandler) SetScheduled(isScheduled bool) {
 	this.scheduled = isScheduled
 }
 
+func (this *baseHandler) UpdateTask(task models.CoreTasks) {
+	this.task.Id = task.Id
+	this.task.TaskName = task.TaskName
+	this.task.Description = task.Description
+	this.task.Enabled = task.Enabled
+	this.task.ScheduleType = task.ScheduleType
+	this.task.ScheduleAt = task.ScheduleAt
+	this.task.LastUpdated = task.LastUpdated
+}
+
 func SetScheduled(this handler, isScheduled bool) {
 	setMethod := reflect.ValueOf(this).MethodByName("SetScheduled")
 	if setMethod.IsValid() {
@@ -79,16 +89,12 @@ func SetScheduled(this handler, isScheduled bool) {
 	}
 }
 
-func UpdateTask(iThis handler, task models.CoreTasks) {
-	this, ok := iThis.(*baseHandler)
-	if ok {
-		this.task.Id = task.Id
-		this.task.TaskName = task.TaskName
-		this.task.Description = task.Description
-		this.task.Enabled = task.Enabled
-		this.task.ScheduleType = task.ScheduleType
-		this.task.ScheduleAt = task.ScheduleAt
-		this.task.LastUpdated = task.LastUpdated
+func UpdateTask(this handler, task models.CoreTasks) {
+	setMethod := reflect.ValueOf(this).MethodByName("UpdateTask")
+	if setMethod.IsValid() {
+		params := make([]reflect.Value, 1)
+		params[0] = reflect.ValueOf(task)
+		setMethod.Call(params)
 	}
 }
 

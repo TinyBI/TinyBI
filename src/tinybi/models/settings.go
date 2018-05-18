@@ -58,11 +58,13 @@ func (this *SettingsModel) Get(code string) *Settings {
 	settings, ok := this.cache[code]
 	if !ok {
 		//Try to get the data from DB;
+		settings = new(Settings)
 		_, err := core.DBEngine.Table("core_settings").Where("code=?", code).Get(settings)
 		if err != nil && core.Conf.Debug {
 			log.Println(err)
 			return nil
 		}
+		this.cache[code]=settings
 	}
 	return settings
 }

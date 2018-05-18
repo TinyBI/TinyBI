@@ -28,12 +28,17 @@ import (
 	"tinybi/models"
 )
 
+const ReloadInterval uint64 = 60
+
 type handler interface {
+	IsScheduled() bool
 	Exec(...interface{})
 }
 
 type baseHandler struct {
-	mutex *sync.Mutex
+	task      models.CoreTasks
+	scheduled bool
+	mutex     *sync.Mutex
 }
 
 func newHandler() *baseHandler {
@@ -44,6 +49,41 @@ func newHandler() *baseHandler {
 
 func (this baseHandler) Exec(...interface{}) {
 	//
+}
+
+func (this baseHandler) IsScheduled() bool {
+	return this.scheduled
+}
+
+func SetScheduled(iThis handler, isScheduled bool) {
+	this, ok := iThis.(*baseHandler)
+	if ok {
+		this.scheduled = isScheduled
+	}
+}
+
+func IsTaskUpdated(iThis handler, task models.CoreTasks) bool {
+	this, ok := iThis.(*baseHandler)
+	if ok {
+		if this.task.LastUpdated.Unix() < task.LastUpdated.Unix() ||
+			this.task.Id != task.Id {
+			return true
+		}
+	}
+	return false
+}
+
+func UpdateTask(iThis handler, task models.CoreTasks) {
+	this, ok := iThis.(*baseHandler)
+	if ok {
+		this.task.Id = task.Id
+		this.task.TaskName = task.TaskName
+		this.task.Description = task.Description
+		this.task.Enabled = task.Enabled
+		this.task.ScheduleType = task.ScheduleType
+		this.task.ScheduleAt = task.ScheduleAt
+		this.task.LastUpdated = task.LastUpdated
+	}
 }
 
 //Defined tasks below
@@ -71,58 +111,91 @@ func ReloadScheduledTasks() {
 		}
 	}
 	for _, task := range tasks {
-		if core.Conf.Debug {
-			log.Println(task)
-		}
 		rTask, ok := RegTasks[task.TaskName]
 		if ok {
-			switch task.ScheduleType {
-			case "SECONDS":
-				interval, err := strconv.Atoi(task.ScheduleAt)
-				if err == nil {
-					core.Scheduler.Every(uint64(interval)).Seconds().Do(func() { rTask.Exec() })
+			if rTask.IsScheduled() {
+				if IsTaskUpdated(rTask, task) {
+					if core.Conf.Debug {
+						log.Println("Task", task.TaskName, "is updated:", task)
+					}
+					UpdateTask(rTask, task)
+					SetScheduled(rTask, false)
 				}
-				if core.Conf.Debug {
-					log.Println("Installed task", task.TaskName, "for", interval, "seconds")
+			} else {
+				log.Println("New unschedule task", task.TaskName, ":", task)
+			}
+			if !rTask.IsScheduled() {
+				switch task.ScheduleType {
+				case "SECONDS":
+					interval, err := strconv.Atoi(task.ScheduleAt)
+					if err == nil {
+						core.Scheduler.Every(uint64(interval)).Seconds().Do(func() { rTask.Exec() })
+					}
+					if core.Conf.Debug {
+						log.Println("Installed task", task.TaskName, "for", interval, "seconds")
+					}
+					SetScheduled(rTask, true)
+					break
+				case "MINUTES":
+					interval, err := strconv.Atoi(task.ScheduleAt)
+					if err == nil {
+						core.Scheduler.Every(uint64(interval)).Minutes().Do(func() { rTask.Exec() })
+					}
+					if core.Conf.Debug {
+						log.Println("Installed task", task.TaskName, "for", interval, "minutes")
+					}
+					SetScheduled(rTask, true)
+					break
+				case "HOURLY":
+					core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					if core.Conf.Debug {
+						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "one hour")
+					}
+					SetScheduled(rTask, true)
+					break
+				case "DAILY":
+					core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					if core.Conf.Debug {
+						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "of the day")
+					}
+					SetScheduled(rTask, true)
+					break
+				case "MONDAY":
+					core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "TUESDAY":
+					core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "WEDNESDAY":
+					core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "THURSDAY":
+					core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "FRIDAY":
+					core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "SATURDAY":
+					core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
+				case "SUNDAY":
+					core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					SetScheduled(rTask, true)
+					break
 				}
-				break
-			case "MINUTES":
-				interval, err := strconv.Atoi(task.ScheduleAt)
-				if err == nil {
-					core.Scheduler.Every(uint64(interval)).Minutes().Do(func() { rTask.Exec() })
-				}
-				if core.Conf.Debug {
-					log.Println("Installed task", task.TaskName, "for", interval, "minutes")
-				}
-				break
-			case "HOURLY":
-				core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "DAILY":
-				core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "MONDAY":
-				core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "TUESDAY":
-				core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "WEDNESDAY":
-				core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "THURSDAY":
-				core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "FRIDAY":
-				core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "SATURDAY":
-				core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
-			case "SUNDAY":
-				core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
-				break
+			}
+		} else {
+			if core.Conf.Debug {
+				log.Println("Unregister task:", task.TaskName)
 			}
 		}
 	}
+	core.Scheduler.Every(ReloadInterval).Seconds().Do(ReloadScheduledTasks)
 }
+

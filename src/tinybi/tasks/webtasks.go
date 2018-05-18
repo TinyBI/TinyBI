@@ -38,7 +38,7 @@ func newWebSessionGcHanler() *WebSessionGcHanler {
 	return handler
 }
 
-func (this WebSessionGcHanler) Exec(...interface{}) {
+func (this WebSessionGcHanler) Exec() {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 	//Clear timeout sessions;

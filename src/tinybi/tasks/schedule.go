@@ -35,10 +35,12 @@ const ReloadInterval uint64 = 10
 type handler interface {
 	IsTaskUpdated(models.CoreTasks) bool
 	IsScheduled() bool
-	Exec(...interface{})
+	Exec()
+	GetExecAddr() func()
 }
 
 type baseHandler struct {
+	execAddr  func()
 	task      models.CoreTasks
 	scheduled bool
 	mutex     *sync.Mutex
@@ -50,8 +52,16 @@ func newHandler() *baseHandler {
 	return handler
 }
 
-func (this baseHandler) Exec(...interface{}) {
+func (this baseHandler) Exec() {
 	//
+}
+
+func (this baseHandler) GetExecAddr() func() {
+	return this.execAddr
+}
+
+func (this *baseHandler) SetExecAddr(f func()) {
+	this.execAddr = f
 }
 
 func (this baseHandler) IsScheduled() bool {
@@ -78,6 +88,15 @@ func (this *baseHandler) UpdateTask(task models.CoreTasks) {
 	this.task.ScheduleType = task.ScheduleType
 	this.task.ScheduleAt = task.ScheduleAt
 	this.task.LastUpdated = task.LastUpdated
+}
+
+func SetExecAddr(this handler, f func()) {
+	setMethod := reflect.ValueOf(this).MethodByName("SetExecAddr")
+	if setMethod.IsValid() {
+		params := make([]reflect.Value, 1)
+		params[0] = reflect.ValueOf(f)
+		setMethod.Call(params)
+	}
 }
 
 func SetScheduled(this handler, isScheduled bool) {
@@ -111,11 +130,9 @@ func init() {
 }
 
 func ReloadScheduledTasks() {
-	//Unload all tasks first;
-	core.Scheduler.Clear()
 	//Read configurations from DB;
 	var tasks []models.CoreTasks
-	err := core.DBEngine.Table("core_tasks").Where("enabled='YES'").Find(&tasks)
+	err := core.DBEngine.Table("core_tasks").Where("1=1").Find(&tasks)
 	if err != nil {
 		if core.Conf.Debug {
 			log.Println(err)
@@ -125,23 +142,36 @@ func ReloadScheduledTasks() {
 	for _, task := range tasks {
 		rTask, ok := RegTasks[task.TaskName]
 		if ok {
-			if rTask.IsScheduled() {
-				if rTask.IsTaskUpdated(task) {
-					if core.Conf.Debug {
-						log.Println("Task", task.TaskName, "is updated:", task)
+			if task.Enabled == "YES" {
+				if rTask.IsScheduled() {
+					if rTask.IsTaskUpdated(task) {
+						if core.Conf.Debug {
+							log.Println("Task", task.TaskName, "is updated:", task)
+						}
+						SetScheduled(rTask, false)
 					}
-					SetScheduled(rTask, false)
+				} else {
+					log.Println("New unschedule task", task.TaskName, ":", task)
 				}
 			} else {
-				log.Println("New unschedule task", task.TaskName, ":", task)
+				//Disabled task;
+				if rTask.IsScheduled() {
+					log.Println("Task", task.TaskName, "has been disabled")
+					core.Scheduler.Remove(rTask.GetExecAddr())
+					SetScheduled(rTask, false)
+				}
+				continue
 			}
 			if !rTask.IsScheduled() {
 				UpdateTask(rTask, task)
+				SetExecAddr(rTask, func() {
+					rTask.Exec()
+				})
 				switch task.ScheduleType {
 				case "SECONDS":
 					interval, err := strconv.Atoi(task.ScheduleAt)
 					if err == nil {
-						core.Scheduler.Every(uint64(interval)).Seconds().Do(func() { rTask.Exec() })
+						core.Scheduler.Every(uint64(interval)).Seconds().Do(rTask.GetExecAddr())
 					}
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "for", interval, "seconds")
@@ -151,7 +181,7 @@ func ReloadScheduledTasks() {
 				case "MINUTES":
 					interval, err := strconv.Atoi(task.ScheduleAt)
 					if err == nil {
-						core.Scheduler.Every(uint64(interval)).Minutes().Do(func() { rTask.Exec() })
+						core.Scheduler.Every(uint64(interval)).Minutes().Do(rTask.GetExecAddr())
 					}
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "for", interval, "minutes")
@@ -159,45 +189,45 @@ func ReloadScheduledTasks() {
 					SetScheduled(rTask, true)
 					break
 				case "HOURLY":
-					core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(rTask.Exec)
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "one hour")
 					}
 					SetScheduled(rTask, true)
 					break
 				case "DAILY":
-					core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(rTask.Exec)
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "of the day")
 					}
 					SetScheduled(rTask, true)
 					break
 				case "MONDAY":
-					core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "TUESDAY":
-					core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "WEDNESDAY":
-					core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "THURSDAY":
-					core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "FRIDAY":
-					core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "SATURDAY":
-					core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				case "SUNDAY":
-					core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(func() { rTask.Exec() })
+					core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(rTask.Exec)
 					SetScheduled(rTask, true)
 					break
 				}

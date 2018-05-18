@@ -22,6 +22,7 @@ package tasks
 
 import (
 	"log"
+	"reflect"
 	"strconv"
 	"sync"
 	"tinybi/core"
@@ -55,10 +56,16 @@ func (this baseHandler) IsScheduled() bool {
 	return this.scheduled
 }
 
-func SetScheduled(iThis handler, isScheduled bool) {
-	this, ok := iThis.(*baseHandler)
-	if ok {
-		this.scheduled = isScheduled
+func (this *baseHandler) SetScheduled(isScheduled bool) {
+	this.scheduled = isScheduled
+}
+
+func SetScheduled(this handler, isScheduled bool) {
+	setMethod := reflect.ValueOf(this).MethodByName("SetScheduled")
+	if setMethod.IsValid() {
+		params := make([]reflect.Value, 1)
+		params[0] = reflect.ValueOf(isScheduled)
+		setMethod.Call(params)
 	}
 }
 

@@ -25,13 +25,15 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+
 	"tinybi/core"
 	"tinybi/models"
 )
 
-const ReloadInterval uint64 = 60
+const ReloadInterval uint64 = 10
 
 type handler interface {
+	IsTaskUpdated(models.CoreTasks) bool
 	IsScheduled() bool
 	Exec(...interface{})
 }
@@ -56,6 +58,14 @@ func (this baseHandler) IsScheduled() bool {
 	return this.scheduled
 }
 
+func (this baseHandler) IsTaskUpdated(task models.CoreTasks) bool {
+	if this.task.LastUpdated.Unix() < task.LastUpdated.Unix() ||
+		this.task.Id != task.Id {
+		return true
+	}
+	return false
+}
+
 func (this *baseHandler) SetScheduled(isScheduled bool) {
 	this.scheduled = isScheduled
 }
@@ -67,17 +77,6 @@ func SetScheduled(this handler, isScheduled bool) {
 		params[0] = reflect.ValueOf(isScheduled)
 		setMethod.Call(params)
 	}
-}
-
-func IsTaskUpdated(iThis handler, task models.CoreTasks) bool {
-	this, ok := iThis.(*baseHandler)
-	if ok {
-		if this.task.LastUpdated.Unix() < task.LastUpdated.Unix() ||
-			this.task.Id != task.Id {
-			return true
-		}
-	}
-	return false
 }
 
 func UpdateTask(iThis handler, task models.CoreTasks) {
@@ -121,17 +120,17 @@ func ReloadScheduledTasks() {
 		rTask, ok := RegTasks[task.TaskName]
 		if ok {
 			if rTask.IsScheduled() {
-				if IsTaskUpdated(rTask, task) {
+				if rTask.IsTaskUpdated(task) {
 					if core.Conf.Debug {
 						log.Println("Task", task.TaskName, "is updated:", task)
 					}
-					UpdateTask(rTask, task)
 					SetScheduled(rTask, false)
 				}
 			} else {
 				log.Println("New unschedule task", task.TaskName, ":", task)
 			}
 			if !rTask.IsScheduled() {
+				UpdateTask(rTask, task)
 				switch task.ScheduleType {
 				case "SECONDS":
 					interval, err := strconv.Atoi(task.ScheduleAt)

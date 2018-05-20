@@ -17,3 +17,6 @@ src/github.com
 
 # Configuration files;
 etc/*.json
+
+# For idea IDEs;
+.idea

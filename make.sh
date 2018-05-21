@@ -25,7 +25,7 @@ build (){
 		$GOGET github.com/go-xorm/xorm
 		$GOGET github.com/chai2010/gettext-go/gettext
 		$GOGET github.com/satori/go.uuid
-		$GOGET github.com/jasonlvhit/gocron
+		$GOGET github.com/marcsantiago/gocron
 		$GOGET github.com/jinzhu/now
 		$GOGET github.com/go-gomail/gomail
 	fi

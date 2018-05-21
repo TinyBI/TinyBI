@@ -101,7 +101,7 @@ func initScheduler() {
 	tasks.RegScheduleTasks()
 	core.Scheduler.Start()
 	//Reload tasks per five minutes;
-	core.Scheduler.Every(5).Minutes().Do(tasks.ReloadScheduledTasks)
+	tasks.ReloadScheduledTasks()
 }
 
 func initData() {

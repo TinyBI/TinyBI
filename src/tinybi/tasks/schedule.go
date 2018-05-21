@@ -171,7 +171,7 @@ func ReloadScheduledTasks() {
 				case "SECONDS":
 					interval, err := strconv.Atoi(task.ScheduleAt)
 					if err == nil {
-						core.Scheduler.Every(uint64(interval)).Seconds().Do(rTask.GetExecAddr())
+						core.Scheduler.Every(uint64(interval), false).Seconds().Do(rTask.GetExecAddr())
 					}
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "for", interval, "seconds")
@@ -181,7 +181,7 @@ func ReloadScheduledTasks() {
 				case "MINUTES":
 					interval, err := strconv.Atoi(task.ScheduleAt)
 					if err == nil {
-						core.Scheduler.Every(uint64(interval)).Minutes().Do(rTask.GetExecAddr())
+						core.Scheduler.Every(uint64(interval), false).Minutes().Do(rTask.GetExecAddr())
 					}
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "for", interval, "minutes")
@@ -189,45 +189,45 @@ func ReloadScheduledTasks() {
 					SetScheduled(rTask, true)
 					break
 				case "HOURLY":
-					core.Scheduler.Every(1).Hour().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Hour().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "one hour")
 					}
 					SetScheduled(rTask, true)
 					break
 				case "DAILY":
-					core.Scheduler.Every(1).Day().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Day().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					if core.Conf.Debug {
 						log.Println("Installed task", task.TaskName, "at", task.ScheduleAt, "of the day")
 					}
 					SetScheduled(rTask, true)
 					break
 				case "MONDAY":
-					core.Scheduler.Every(1).Monday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Monday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "TUESDAY":
-					core.Scheduler.Every(1).Tuesday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Tuesday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "WEDNESDAY":
-					core.Scheduler.Every(1).Wednesday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Wednesday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "THURSDAY":
-					core.Scheduler.Every(1).Thursday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Thursday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "FRIDAY":
-					core.Scheduler.Every(1).Friday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Friday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "SATURDAY":
-					core.Scheduler.Every(1).Saturday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Saturday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				case "SUNDAY":
-					core.Scheduler.Every(1).Sunday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
+					core.Scheduler.Every(1, false).Sunday().At(task.ScheduleAt).Do(rTask.GetExecAddr())
 					SetScheduled(rTask, true)
 					break
 				}
@@ -238,6 +238,5 @@ func ReloadScheduledTasks() {
 			}
 		}
 	}
-	core.Scheduler.Every(ReloadInterval).Seconds().Do(ReloadScheduledTasks)
+	core.Scheduler.Every(ReloadInterval, false).Seconds().Do(ReloadScheduledTasks)
 }
-

@@ -27,6 +27,7 @@ build (){
 		$GOGET github.com/satori/go.uuid
 		$GOGET github.com/jasonlvhit/gocron
 		$GOGET github.com/jinzhu/now
+		$GOGET github.com/go-gomail/gomail
 	fi
 	$GOBIN install $TARGET 
 	#Build modules;

@@ -99,8 +99,6 @@ func initApp(confPath string) {
 
 func initScheduler() {
 	tasks.RegScheduleTasks()
-	core.Scheduler.Start()
-	//Reload tasks per five minutes;
 	tasks.StartSchedule()
 }
 

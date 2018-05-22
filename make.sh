@@ -1,20 +1,26 @@
 #!/bin/bash
 GOBIN=go
 GOGET="go get"
+GOBUILD="go build"
 TARGET=tinybi
-MODDIR=mods
-MODSOURCES=src/mod/*.go
+MODDIR="mods"
+MODSOURCES="src/mod"
 WWWSUBDIRS=("www/public/cache")
 GOPATH=`pwd`
 
 #Build Operation;
-build_mods (){
-	if [ ! -d $MODDIR ];then
-	        mkdir $MODDIR
-	fi
-	for f in $MODSOURCES; do
-		$GOBIN build -buildmode=plugin -o $MODDIR/`basename -s .go $f`.so $f
-	done
+build_mods(){
+    #Build web mods;
+    export GOPATH
+    if [ ! -d $MODDIR ];then
+        mkdir $MODDIR
+    fi
+    for mDir in $MODSOURCES/*
+    do
+        if test -d $mDir; then
+            $GOBUILD -buildmode=plugin -o $MODDIR/`basename $mDir`.so $mDir/main.go
+        fi
+    done
 }
 
 build (){
@@ -25,7 +31,7 @@ build (){
 		$GOGET github.com/go-xorm/xorm
 		$GOGET github.com/chai2010/gettext-go/gettext
 		$GOGET github.com/satori/go.uuid
-		$GOGET github.com/marcsantiago/gocron
+		$GOGET github.com/jasonlvhit/gocron
 		$GOGET github.com/jinzhu/now
 		$GOGET github.com/go-gomail/gomail
 	fi

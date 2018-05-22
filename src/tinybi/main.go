@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"plugin"
 	"strings"
@@ -41,7 +42,19 @@ import (
 
 func main() {
 	configPath := flag.String("c", "etc/config.json", "Path of configuration file")
+	logPath := flag.String("l", "stdout", "Path of log file, use stdout to print logs at console")
 	flag.Parse()
+	//Init Log;
+	if *logPath != "stdout" {
+		//Redirect log to file;
+		fLog, err := os.OpenFile(*logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModePerm)
+		if err != nil {
+			log.Println("Fail to open log file", *logPath)
+			log.Fatal(err)
+		}
+		defer fLog.Close()
+		log.SetOutput(fLog)
+	}
 	initApp(*configPath)
 	if core.Conf.Debug {
 		log.Println(core.Conf)

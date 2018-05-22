@@ -27,9 +27,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"plugin"
 	"strings"
+	"syscall"
 	"tinybi/apps"
 	"tinybi/core"
 	"tinybi/models"
@@ -45,6 +47,7 @@ func main() {
 	logPath := flag.String("l", "stdout", "Path of log file, use stdout to print logs at console")
 	flag.Parse()
 	//Init Log;
+	var fLog *os.File
 	if *logPath != "stdout" {
 		//Redirect log to file;
 		fLog, err := os.OpenFile(*logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModePerm)
@@ -52,9 +55,21 @@ func main() {
 			log.Println("Fail to open log file", *logPath)
 			log.Fatal(err)
 		}
-		defer fLog.Close()
 		log.SetOutput(fLog)
 	}
+	log.Println("*Starting TinyBI daemon......................")
+	//Init signals;
+	sChan := make(chan os.Signal, 1)
+	signal.Notify(sChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	go func(fToClose *os.File) {
+		sigCatch := <-sChan
+		log.Println("Catched signal:", sigCatch)
+		if fToClose != nil {
+			fToClose.Close()
+		}
+		log.Println("*TibyBI daemon is stopped")
+		os.Exit(0)
+	}(fLog)
 	initApp(*configPath)
 	if core.Conf.Debug {
 		log.Println(core.Conf)

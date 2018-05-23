@@ -22,6 +22,7 @@ package webcore
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -60,4 +61,13 @@ func JsonEncode(in interface{}) string {
 		return ""
 	}
 	return string(bstr)
+}
+
+func ErrorNotFound(w http.ResponseWriter, r *http.Request) {
+	lang := GetUILang(w, r)
+	w.WriteHeader(http.StatusNotFound)
+	err := GetTemplate(w, lang, "core/404.html").Execute(w, nil)
+	if err != nil {
+		log.Println(err)
+	}
 }

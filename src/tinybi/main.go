@@ -92,7 +92,7 @@ func HttpServer(w http.ResponseWriter, r *http.Request) {
 		routePath := r.URL.Path
 		app, ok := apps.WebRoutes[routePath]
 		if !ok {
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 		} else {
 			app.Dispatch(w, r)
 		}

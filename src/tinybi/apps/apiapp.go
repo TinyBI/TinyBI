@@ -34,13 +34,13 @@ type ApiApp struct {
 func (this ApiApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 	paths := strings.Split(r.URL.Path, "/")
 	if len(paths) < 2 {
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	resourceName := paths[1]
 	resource, ok := restful.RestfulResources[resourceName]
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	switch r.Method {
@@ -57,7 +57,7 @@ func (this ApiApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 		resource.Delete(w, r)
 		break
 	default:
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 }

@@ -132,7 +132,7 @@ func (this GLApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 			break
 		default:
 			//404
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 	} else {
@@ -328,7 +328,7 @@ func (this GLApp) periodEditPage(w http.ResponseWriter, r *http.Request) {
 	periodId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=periodEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Get(&Html.Period)
@@ -337,7 +337,7 @@ func (this GLApp) periodEditPage(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=periodEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Edit Period"
@@ -363,7 +363,7 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 	periodId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=periodEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_periods").Where("id = ?", periodId).Get(&Html.Period)
@@ -372,7 +372,7 @@ func (this GLApp) periodEdit(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=periodEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	r.ParseForm()
@@ -601,7 +601,7 @@ func (this GLApp) accountEditPage(w http.ResponseWriter, r *http.Request) {
 	accountId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=accountEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_accounts").Where("id = ?", accountId).Get(&Html.Account)
@@ -610,7 +610,7 @@ func (this GLApp) accountEditPage(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=accountEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Edit Account"
@@ -636,7 +636,7 @@ func (this GLApp) accountEdit(w http.ResponseWriter, r *http.Request) {
 	accountId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=accountEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_accounts").Where("id = ?", accountId).Get(&Html.Account)
@@ -645,7 +645,7 @@ func (this GLApp) accountEdit(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=accountEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	r.ParseForm()
@@ -840,7 +840,7 @@ func (this GLApp) sobEditPage(w http.ResponseWriter, r *http.Request) {
 	sobId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=sobEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_set_of_books").Where("id = ?", sobId).Get(&Html.Sob)
@@ -849,7 +849,7 @@ func (this GLApp) sobEditPage(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=sobEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Edit set of book"
@@ -877,7 +877,7 @@ func (this GLApp) sobEdit(w http.ResponseWriter, r *http.Request) {
 	sobId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=sobEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	ok, err := core.DBEngine.Table("gl_set_of_books").Where("id = ?", sobId).Get(&Html.Sob)
@@ -886,7 +886,7 @@ func (this GLApp) sobEdit(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=sobEdit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	r.ParseForm()
@@ -978,12 +978,12 @@ func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			log.Printf("Illegal visit of gl.html?act=journalEdit")
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 		if Html.Journal.Status != models.GLJournalStatusCreated {
 			log.Printf("Only created journal can be edited, journal:", journalId)
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 		// Load lines;
@@ -994,7 +994,7 @@ func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			log.Printf("Corrupt journal data of journal:", journalId)
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 		var lineArray [][]string
@@ -1010,7 +1010,7 @@ func (this GLApp) journalEditPage(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 			}
 			log.Printf("Corrupt journal data of journal, unable to marsh JSON data:", journalId)
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 		Html.JournalLines = string(bstr)
@@ -1261,7 +1261,7 @@ func (this GLApp) journalList(w http.ResponseWriter, r *http.Request) {
 	sobId, err := strconv.Atoi(r.URL.Query().Get("sobId"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=journalList")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var fullRet struct {
@@ -1304,7 +1304,7 @@ func (this GLApp) journalDetail(w http.ResponseWriter, r *http.Request) {
 	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=journalDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var Html struct {
@@ -1327,12 +1327,12 @@ func (this GLApp) journalDetail(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=journalDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	if !ok {
 		log.Printf("Illegal visit of gl.html?act=journalDetail, No journal:", journalId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	err = core.DBEngine.Table("gl_journal_entries").Where("journal_id=?", journalId).Join(
@@ -1342,7 +1342,7 @@ func (this GLApp) journalDetail(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=journalDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Journal Detail"
@@ -1370,13 +1370,13 @@ func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
 	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=journalApprove")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	session := webcore.AclGetSession(r)
 	if session == nil {
 		log.Printf("Illegal visit of gl.html?act=journalApprove")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	// Load Journal to Approve;
@@ -1386,12 +1386,12 @@ func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=journalApprove")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	if Html.Journal.Status != models.GLJournalStatusCreated {
 		log.Printf("Only created journal can be approved, journal:", journalId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Journal.Status = models.GLJournalStatusApproved
@@ -1403,7 +1403,7 @@ func (this GLApp) journalApprove(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Fail to save journal, journal id:", journalId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	urlRedirect := fmt.Sprintf("/gl.html?act=journalDetail&id=%d", journalId)
@@ -1428,13 +1428,13 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 	journalId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=journalApprove")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	session := webcore.AclGetSession(r)
 	if session == nil {
 		log.Printf("Illegal visit of gl.html?act=journalApprove")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	// Load Journal to Account;
@@ -1444,12 +1444,12 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=journalAccount")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	if Html.Journal.Status != models.GLJournalStatusApproved {
 		log.Printf("Only approved journal can be accounted, journal:", journalId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Journal.Status = models.GLJournalStatusAccounted
@@ -1461,7 +1461,7 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Fail to save journal, journal id:", journalId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	//Push data into balance;
@@ -1472,7 +1472,7 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=journalAccount")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	for _, line := range lines {
@@ -1498,7 +1498,7 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 						log.Println(err)
 					}
 					log.Printf("Cannot created balance, journal line:", line.Id)
-					http.Redirect(w, r, "/", http.StatusNotFound)
+					webcore.ErrorNotFound(w, r)
 					return
 				}
 			}
@@ -1514,7 +1514,7 @@ func (this GLApp) journalAccounting(w http.ResponseWriter, r *http.Request) {
 					log.Println(err)
 				}
 				log.Printf("Only update balance, journal line:", line.Id)
-				http.Redirect(w, r, "/", http.StatusNotFound)
+				webcore.ErrorNotFound(w, r)
 				return
 			}
 		}
@@ -1540,7 +1540,7 @@ func (this GLApp) balanceList(w http.ResponseWriter, r *http.Request) {
 	sobId, err := strconv.Atoi(r.URL.Query().Get("sobId"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=balanceList")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var fullRet struct {
@@ -1584,13 +1584,13 @@ func (this GLApp) balanceDetail(w http.ResponseWriter, r *http.Request) {
 	periodId, err := strconv.Atoi(r.URL.Query().Get("periodId"))
 	if err != nil {
 		log.Printf("Illegal visit of gl.html?act=balanceDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	SobId := r.URL.Query().Get("sobId")
 	if SobId == "" {
 		log.Printf("Illegal visit of gl.html?act=balanceDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var Html struct {
@@ -1609,12 +1609,12 @@ func (this GLApp) balanceDetail(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=balanceDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	if !ok {
 		log.Printf("Illegal visit of gl.html?act=balanceDetail, No such period:", periodId)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	err = core.DBEngine.Table("gl_balances").Where("gl_balances.period_id=?", periodId).Join(
@@ -1624,7 +1624,7 @@ func (this GLApp) balanceDetail(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Illegal visit of gl.html?act=balanceDetail")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	for _, balance := range Html.BalanceInfo {

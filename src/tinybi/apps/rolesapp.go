@@ -172,7 +172,7 @@ func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
 	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
 	if err != nil {
 		log.Printf("Fail to open file:%s\n", core.Conf.App.Web.AclDefinePath)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	err = json.Unmarshal(jsonStr, &Html.Acls)
@@ -181,7 +181,7 @@ func (this RolesApp) addPage(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "New Role"
@@ -242,7 +242,7 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of roles.html?act=edit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	sql := "SELECT id, role_name, role_codes FROM core_roles WHERE id=?"
@@ -251,14 +251,14 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 		if core.Conf.Debug {
 			log.Println("Fail to query SQL", err)
 		}
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	defer row.Close()
 	for row.Next() {
 		err = row.Scan(&Html.Role.RoleId, &Html.Role.RoleName, &Html.Role.RoleCodes)
 		if err != nil {
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 	}
@@ -267,7 +267,7 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 	jsonStr, err := ioutil.ReadFile(core.Conf.App.Web.AclDefinePath)
 	if err != nil {
 		log.Printf("Fail to open file:%s\n", core.Conf.App.Web.AclDefinePath)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	err = json.Unmarshal(jsonStr, &Html.Acls)
@@ -276,7 +276,7 @@ func (this RolesApp) editPage(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 		log.Printf("Fail to load configuration from:%s\n", core.Conf.App.Web.AclDefinePath)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Edit Role"
@@ -304,7 +304,7 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of roles.html?act=edit")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	sql := "SELECT id, role_name, role_codes FROM core_roles WHERE id=?"
@@ -313,14 +313,14 @@ func (this RolesApp) edit(w http.ResponseWriter, r *http.Request) {
 		if core.Conf.Debug {
 			log.Println("Fail to query SQL", err)
 		}
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	defer row.Close()
 	for row.Next() {
 		err = row.Scan(&Html.Role.RoleId, &Html.Role.RoleName, &Html.Role.RoleCodes)
 		if err != nil {
-			http.Redirect(w, r, "/", http.StatusNotFound)
+			webcore.ErrorNotFound(w, r)
 			return
 		}
 	}
@@ -347,7 +347,7 @@ func (this RolesApp) del(w http.ResponseWriter, r *http.Request) {
 	roleId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of roles.html?act=del")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	sql := "DELETE FROM core_roles WHERE id = ? "

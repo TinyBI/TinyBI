@@ -200,7 +200,7 @@ func (this UsersApp) edit(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Println("Illegal visit of users.html?act=edit", err)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var Html struct {
@@ -246,7 +246,7 @@ func (this UsersApp) edit(w http.ResponseWriter, r *http.Request) {
 		&Html.User.PasswordSalt)
 	if err != nil {
 		log.Println("Illegal visit of users.html?act=edit", err)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	r.ParseForm()
@@ -301,7 +301,7 @@ func (this UsersApp) del(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Printf("Illegal visit of users.html?act=del")
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	sql := "DELETE FROM core_users WHERE id = ? "
@@ -362,7 +362,7 @@ func (this UsersApp) editPage(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Println("Illegal visit of users.html?act=edit", err)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	var Html struct {
@@ -427,7 +427,7 @@ func (this UsersApp) editPage(w http.ResponseWriter, r *http.Request) {
 		&Html.User.PasswordSalt)
 	if err != nil {
 		log.Println("Illegal visit of users.html?act=edit", err)
-		http.Redirect(w, r, "/", http.StatusNotFound)
+		webcore.ErrorNotFound(w, r)
 		return
 	}
 	Html.Title = "Edit user"

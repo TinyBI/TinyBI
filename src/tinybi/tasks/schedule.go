@@ -25,9 +25,12 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+	"time"
 
 	"tinybi/core"
 	"tinybi/models"
+
+	"github.com/jasonlvhit/gocron"
 )
 
 const ReloadInterval uint64 = 10
@@ -241,6 +244,12 @@ func ReloadScheduledTasks() {
 }
 
 func StartSchedule() {
+	if core.Conf.TimeZone != "" {
+		local, err := time.LoadLocation(core.Conf.TimeZone)
+		if err == nil {
+			gocron.ChangeLoc(local)
+		}
+	}
 	core.Scheduler.Every(ReloadInterval).Seconds().Do(ReloadScheduledTasks)
 	core.Scheduler.Start()
 }

@@ -30,6 +30,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"plugin"
+	"runtime"
 	"strings"
 	"syscall"
 	"tinybi/apps"
@@ -123,6 +124,8 @@ func initApp(confPath string) {
 		log.Fatal(err)
 	}
 	core.DB = core.DBEngine.DB().DB
+	numCPUs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPUs + 1)
 }
 
 func initScheduler() {

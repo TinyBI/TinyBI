@@ -73,7 +73,9 @@ func (this baseHandler) IsScheduled() bool {
 
 func (this baseHandler) IsTaskUpdated(task models.CoreTasks) bool {
 	if this.task.LastUpdated.Unix() < task.LastUpdated.Unix() ||
-		this.task.Id != task.Id {
+		this.task.Id != task.Id ||
+		this.task.ScheduleAt != task.ScheduleAt ||
+		this.task.ScheduleType != task.ScheduleType {
 		return true
 	}
 	return false
@@ -166,6 +168,9 @@ func ReloadScheduledTasks() {
 				continue
 			}
 			if !rTask.IsScheduled() {
+				if rTask.GetExecAddr() != nil {
+					core.Scheduler.Remove(rTask.GetExecAddr())
+				}
 				UpdateTask(rTask, task)
 				SetExecAddr(rTask, func() {
 					rTask.Exec()

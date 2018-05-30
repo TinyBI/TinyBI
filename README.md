@@ -2,6 +2,7 @@
 
 [![Travis Build Status](https://travis-ci.org/TinyBI/TinyBI.svg?branch=master)](https://github.com/TinyBI/TinyBI)
 [![License](https://img.shields.io/github/license/TinyBI/TinyBI.svg)](https://github.com/TinyBI/TinyBI)
+[![Openource](https://img.shields.io/badge/opensource-BI%20Report%20System-orange.svg)](https://github.com/TinyBI/TinyBI)
 
 
 Openource BI Report System, simple and powerful

@@ -30,7 +30,7 @@ import (
 	"tinybi/core"
 	"tinybi/models"
 
-	"github.com/jasonlvhit/gocron"
+	"github.com/gljubojevic/gocron"
 )
 
 const ReloadInterval uint64 = 10

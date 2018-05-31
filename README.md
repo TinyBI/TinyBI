@@ -2,6 +2,7 @@
 
 [![Travis Build Status](https://travis-ci.org/TinyBI/TinyBI.svg?branch=master)](https://github.com/TinyBI/TinyBI)
 [![License](http://img.shields.io/github/license/TinyBI/TinyBI.svg)](https://github.com/TinyBI/TinyBI)
+[![Go Report Card](https://goreportcard.com/badge/github.com/TinyBI/TinyBI)](https://github.com/TinyBI/TinyBI)
 [![Openource](http://img.shields.io/badge/opensource-BI%20Report%20System-orange.svg)](https://github.com/TinyBI/TinyBI)
 
 

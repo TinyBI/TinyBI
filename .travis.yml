@@ -11,14 +11,8 @@ install: true
 before_script:
   - GO_FILES=$(find . -iname '*.go' -type f | grep -v /vendor/)
   - export GOPATH=`pwd`
-  - go get github.com/go-sql-driver/mysql
-  - go get github.com/go-xorm/xorm
-  - go get github.com/go-xorm/builder 
-  - go get github.com/go-xorm/core
-  - go get github.com/jasonlvhit/gocron 
-  - go get github.com/jinzhu/now 
-  - go get github.com/chai2010/gettext-go/gettext 
-  - go get github.com/satori/go.uuid 
+  - chmod +x make.sh
 
 script:
-  - go install tinybi
+  - ./make.sh build
+  - ./make.sh build_mods

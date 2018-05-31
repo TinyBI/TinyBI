@@ -33,10 +33,10 @@ github.com/go-sql-driver/mysql
 
 github.com/go-xorm/xorm
 
+github.com/gljubojevic/gocron
+
+github.com/360EntSecGroup-Skylar/excelize
+
+github.com/go-gomail/gomail
+
 github.com/chai2010/gettext-go/gettext
-
-github.com/satori/go.uuid
-
-github.com/jasonlvhit/gocron
-
-github.com/jinzhu/now

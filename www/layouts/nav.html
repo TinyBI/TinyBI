@@ -30,7 +30,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">TinyBI</a>
+                <a class="navbar-brand" href="index.html">TinyBI Report System</a>
             </div>
             <!-- /.navbar-header -->
 
@@ -230,9 +230,9 @@
                         <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
-                        <li><a href="/userProfile.html"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        <li><a href="/profile.html?act=user"><i class="fa fa-user fa-fw"></i> User Profile</a>
                         </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        <li><a href="/profile.html?act=settings"><i class="fa fa-gear fa-fw"></i> Settings</a>
                         </li>
                         <li class="divider"></li>
                         <li><a href="/login.html?act=exit"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
@@ -260,42 +260,6 @@
                         </li>
                         <li>
                             <a href="index.html"><i class="fa fa-dashboard fa-fw"></i>{{gettext "Dashboard"}}</a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i>{{gettext "General Ledger"}}<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-								<li>
-                                    <a href="/gl.html?act=sobs">Set of books</a>
-                                </li>
-								<li>
-                                    <a href="/gl.html?act=periods">Accounting Periods</a>
-                                </li>
-								<li>
-                                    <a href="/gl.html?act=accounts">Accounts</a>
-                                </li>
-								<li>
-                                    <a href="/gl.html?act=journals">Journals</a>
-                                </li>
-								<li>
-                                    <a href="/gl.html?act=balances">Balances</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-						<li>
-                            <a href="#"><i class="fa fa-wrench fa-fw"></i>{{gettext "System Tools"}}<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="/concurrentTasks.html">{{gettext "Concurrent Tasks"}}</a>
-                                </li>
-                                <li>
-                                    <a href="/users.html">{{gettext "User Management"}}</a>
-                                </li>
-                                <li>
-                                    <a href="/roles.html">{{gettext "Roles"}}</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
                         </li>
 						{{template "menu_cache" .}}
                     </ul>

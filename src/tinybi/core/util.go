@@ -28,6 +28,9 @@ import (
 
 var r *rand.Rand // Rand for this package.
 
+const DefaultTimeFormat string = "2006-01-02 15:04:05"
+const DefaultDateFormat string = "2006-01-02"
+
 func init() {
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
@@ -41,7 +44,11 @@ func RandomString(strlen int) string {
 	return string(result)
 }
 
-func UnixTime(str string) int {
+func UnixTime(str string, format ...string) int {
+	realFormat := DefaultTimeFormat
+	if len(format) > 0 {
+		realFormat = format[0]
+	}
 	if str == "" {
 		return 0
 	}
@@ -52,14 +59,18 @@ func UnixTime(str string) int {
 		}
 		return 0
 	}
-	tm, err := time.ParseInLocation("2006-01-02 15:04:05", str, local)
+	tm, err := time.ParseInLocation(realFormat, str, local)
 	if err != nil {
 		return 0
 	}
 	return int(tm.In(local).Unix())
 }
 
-func FromUnixTime(t int) string {
+func FromUnixTime(t int64, format ...string) string {
+	realFormat := DefaultTimeFormat
+	if len(format) > 0 {
+		realFormat = format[0]
+	}
 	if t == 0 {
 		return "1970-01-01 00:00:00"
 	}
@@ -68,11 +79,11 @@ func FromUnixTime(t int) string {
 		if Conf.Debug {
 			log.Println(err)
 		}
-		return time.Unix(int64(t), 0).Format("2006-01-02 15:04:05")
+		return time.Unix(int64(t), 0).Format(realFormat)
 	}
-	return time.Unix(int64(t), 0).In(local).Format("2006-01-02 15:04:05")
+	return time.Unix(int64(t), 0).In(local).Format(realFormat)
 }
 
 func NowTime() string {
-	return FromUnixTime(int(time.Now().Unix()))
+	return FromUnixTime(time.Now().Unix())
 }

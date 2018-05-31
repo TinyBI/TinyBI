@@ -16,12 +16,19 @@
                                 {{gettext .Info.Message}}
                         </div>
 						{{end}}
-							<form id="profileForm" role="form" action="/userProfile.html?sId={{ .Session.SessionId }}" method="post">
+							<form id="profileForm" role="form" action="/profile.html?act=updateProfile" method="post">
 								<fieldset>
 									<div class="form-group">
 	                                        <label>{{gettext "Nickname"}}</label>
-	                                        <input class="form-control" name="nickname" placeholder='{{gettext "An unique nickname"}}' value="{{ .Session.User.NickName }}" required>
+	                                        <input class="form-control" name="nickname" placeholder='{{gettext "An unique nickname"}}' value="{{ .User.NickName }}" required>
 	                            	</div>
+                                    <div class="form-group">
+                                        <label>{{gettext "Language"}}</label>
+                                        <select class="form-control" name="lang">
+                                            <option value="en_US" {{if eq .User.Lang "en_US"}}selected{{end}}>English (United States)</option>
+                                            <option value="zh_CN" {{if eq .User.Lang "zh_CN"}}selected{{end}}>中文 (中国)</option>
+                                        </select>
+                                    </div>
 									<div class="form-group">
 	                                            <label class="checkbox-inline">
 	                                                <input type="checkbox" id="changePassword" name="changePassword">{{gettext "Change password"}}

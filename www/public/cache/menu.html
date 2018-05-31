@@ -1,8 +1,18 @@
 {{define "menu_cache"}}<li>
+    <a href="#"><i class="fa fa-wrench fa-fw"></i>{{gettext "Users & Roles"}}<span class="fa arrow"></span></a>
+    <ul class="nav nav-second-level">
+        <li>
+            <a href="/acl.html?act=users">{{gettext "Users"}}</a>
+        </li>
+        <li>
+            <a href="/acl.html?act=roles">{{gettext "Roles"}}</a>
+        </li>
+    </ul>
+</li><li>
     <a href="#"><i class="fa fa-wrench fa-fw"></i>{{gettext "Version"}}<span class="fa arrow"></span></a>
     <ul class="nav nav-second-level">
             <li>
-                 <a href="/mod_version.html">{{gettext "About TinyBI"}}</a>
+                 <a href="/version.html">{{gettext "About TinyBI"}}</a>
             </li>
     </ul>
 </li>{{end}}

@@ -20,16 +20,17 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package mailer
 
+//Email queue for mailer;
+
 import (
 	"container/list"
 	"crypto/tls"
 	"log"
 	"strconv"
 	"time"
-
 	"tinybi/core"
 	"tinybi/logger"
-	"tinybi/models"
+	"tinybi/model"
 
 	"github.com/go-gomail/gomail"
 )
@@ -145,11 +146,11 @@ func run() {
 
 func Start() {
 	//Read SMTP configuration from settings;
-	smtpServer := models.BusinessSettings.Get("SMTP_SERVER")
+	smtpServer := model.BusinessSettings.Get("SMTP_SERVER")
 	if smtpServer != nil {
 		smtpInfo.Server = smtpServer.Value
 	}
-	smtpPort := models.BusinessSettings.Get("SMTP_PORT")
+	smtpPort := model.BusinessSettings.Get("SMTP_PORT")
 	if smtpPort != nil {
 		var err error
 		smtpInfo.Port, err = strconv.Atoi(smtpPort.Value)
@@ -157,15 +158,15 @@ func Start() {
 			smtpInfo.Port = 25
 		}
 	}
-	smtpUser := models.BusinessSettings.Get("SMTP_USER")
+	smtpUser := model.BusinessSettings.Get("SMTP_USER")
 	if smtpServer != nil {
 		smtpInfo.User = smtpUser.Value
 	}
-	smtpPass := models.BusinessSettings.Get("SMTP_PASS")
+	smtpPass := model.BusinessSettings.Get("SMTP_PASS")
 	if smtpServer != nil {
 		smtpInfo.Pass = smtpPass.Value
 	}
-	smtpTLS := models.BusinessSettings.Get("SMTP_TLS")
+	smtpTLS := model.BusinessSettings.Get("SMTP_TLS")
 	if smtpTLS != nil {
 		smtpInfo.TLS = smtpTLS.Value
 	}

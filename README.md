@@ -21,12 +21,13 @@ Openource BI Report System, simple and powerful
 ![Version Page](https://github.com/TinyBI/TinyBI/raw/master/screenshots/aboutModule.png "Version Page")
 
 ### Features
-- Scheduled Concurrent Tasks
-- RESTFUL APIs
-- Multilingual WEB UI
+- Modulized Architecture (Done)
+- Scheduled Concurrent Tasks (Done)
+- RESTFUL APIs (In process)
+- Multilingual WEB UI (Done)
 
 ### Business Modules
-- General Ledger
+- General Ledger (Done, Will by splited from core)
 
 ### Installation Dependencies
 github.com/go-sql-driver/mysql
@@ -40,3 +41,14 @@ github.com/360EntSecGroup-Skylar/excelize
 github.com/go-gomail/gomail
 
 github.com/chai2010/gettext-go/gettext
+
+### Installation process
+- To build TinyBI, use make.sh to simplize the Installation process
+```Bash
+#Just enter make.sh to show usage;
+./make.sh
+#Build the core
+./make.sh build
+#Build the modules
+./make.sh build_mods
+```

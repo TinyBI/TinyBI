@@ -173,7 +173,7 @@ func ReloadScheduledTasks() {
 				}
 				UpdateTask(rTask, task)
 				SetExecAddr(rTask, func() {
-					rTask.Exec()
+					go rTask.Exec()
 				})
 				switch task.ScheduleType {
 				case "SECONDS":

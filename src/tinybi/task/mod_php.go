@@ -81,6 +81,8 @@ func (this modPhpHandler) Exec() {
 		return
 	}
 	logger.Printf(this.loggerId, "Start of php module:%s", this.filePath)
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
 	args := make([]string, 0)
 	args = append(args, this.filePath)
 	if len(this.parameters) > 0 {

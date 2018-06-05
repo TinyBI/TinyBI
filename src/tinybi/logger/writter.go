@@ -58,3 +58,15 @@ func Printf(id string, format string, data ...interface{}) error {
 	_, err = fLog.WriteString(writeStr)
 	return err
 }
+
+func GetPath(id string) string {
+	pathPrefix := core.Conf.Logger.RootPath
+	if pathPrefix == "" {
+		return ""
+	}
+	curFolder := core.FromUnixTime(time.Now().Unix(), core.DefaultDateFormat)
+	path := filepath.Join(pathPrefix, curFolder)
+	path = filepath.Join(pathPrefix, curFolder, id)
+	path += ".txt"
+	return path
+}

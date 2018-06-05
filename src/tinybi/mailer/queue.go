@@ -85,9 +85,12 @@ func sendMailEry(mail *mailEntry) {
 	}
 	goMail := gomail.NewMessage()
 	goMail.SetHeader("From", mail.Mail.From)
+	if mail.Mail.From == "" {
+		goMail.SetHeader("From", smtpInfo.User)
+	}
 	goMail.SetHeader("To", mail.Mail.To...)
-	goMail.SetHeader("Cc", mail.Mail.To...)
-	goMail.SetHeader("Bcc", mail.Mail.To...)
+	goMail.SetHeader("Cc", mail.Mail.Cc...)
+	goMail.SetHeader("Bcc", mail.Mail.Bcc...)
 	goMail.SetHeader("Subject", mail.Mail.Subject)
 	goMail.SetBody("text/html", mail.Mail.Contents)
 	//Attachments;

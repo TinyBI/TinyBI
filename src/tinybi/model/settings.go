@@ -31,7 +31,7 @@ import (
 //Core Business Settings;
 type Settings struct {
 	Id          int64
-	Code        string    `xorm:"'code'" json:"1"`
+	Code        string    `xorm:"notnull unique 'code'" json:"1"`
 	Description string    `xorm:"'description'" json:"2"`
 	Value       string    `xorm:"'value'" json:"3"`
 	LastUpdated time.Time `xorm:"TIMESTAMP 'last_updated' created updated" json:"4"`
@@ -45,13 +45,14 @@ type SettingsModel struct {
 
 var BusinessSettings *SettingsModel
 
-func init() {
-	BusinessSettings = new(SettingsModel)
-	BusinessSettings.Init()
+func NewBusinessSettings() *SettingsModel {
+	model := new(SettingsModel)
+	model.cache = make(map[string]*Settings)
+	return model
 }
 
-func (this *SettingsModel) Init() {
-	this.cache = make(map[string]*Settings)
+func init() {
+	BusinessSettings = NewBusinessSettings()
 }
 
 func (this *SettingsModel) Get(code string) *Settings {
@@ -102,12 +103,19 @@ func (this *SettingsModel) Set(settings *Settings) error {
 }
 
 func (this *SettingsModel) List() []Settings {
-	list := make([]Settings, 0)
-	for _, s := range this.cache {
-		setting := Settings{Id: s.Id, Code: s.Code,
-			Description: s.Description, Value: s.Value,
-			LastUpdated: s.LastUpdated}
-		list = append(list, setting)
+	var list []Settings
+	err := core.DB.Table("core_settings").Where("1=1").Find(&list)
+	if err != nil {
+		if core.Conf.Debug {
+			log.Println(err)
+		}
+	}
+	//Added to cache if the key is not exist;
+	for i := 0; i < len(list); i++ {
+		_, ok := this.cache[list[i].Code]
+		if !ok {
+			this.cache[list[i].Code] = &list[i]
+		}
 	}
 	return list
 }

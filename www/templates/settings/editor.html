@@ -1,0 +1,40 @@
+{{template "header" .}}
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">{{gettext .Title}}</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+                            <a class="btn btn-default" href="/settings.html">{{gettext "Business Settings"}}</a>
+                        </div>
+						<div class="panel-body">
+						{{if .Info.Show }}
+						<div class="alert alert-{{ .Info.Type }} alert-dismissable">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                {{gettext .Info.Message}}
+                        </div>
+						{{end}}
+							<form id="settingsForm" role="form" action="/settings.html?act={{ .Act}}&id={{ .Settings.Id }}" method="post">
+								<fieldset>
+									<div class="form-group">
+	                                        <label>{{gettext "Code"}}</label>
+	                                        <input class="form-control" name="code" placeholder='{{gettext "An unique code"}}' value="{{ .Settings.Code }}" required>
+	                            	</div>
+                                    <div class="form-group">
+                                        <label>{{gettext "Description"}}</label>
+                                        <input class="form-control" name="description" placeholder='{{gettext "Description"}}' value="{{ .Settings.Description }}" >
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{gettext "Value"}}</label>
+                                        <input class="form-control" name="value" placeholder='{{gettext "Value"}}' value="{{ .Settings.Value }}" >
+                                    </div>
+									<a onclick="document.getElementById('settingsForm').submit();return false" class="btn btn-lg btn-success btn-block">{{gettext "Submit"}}</a>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+				</div>
+</div>
+{{template "footer"}}

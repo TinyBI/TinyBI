@@ -22,9 +22,11 @@ package task
 
 import (
 	"log"
+	"strings"
 	"sync"
 	"tinybi/logger"
 	"tinybi/mailer"
+	"tinybi/model"
 )
 
 type exampleHandler struct {
@@ -45,7 +47,11 @@ func (this exampleHandler) Exec() {
 	}()
 	log.Println("Example task")
 	logger.Printf("EXAMPLE", "Example Task")
-	mailer.PushToQueue(mailer.EMail{From: "pyp126@gmail.com",
-		To: []string{"pyp126@gmail.com"}, Subject: "Test task",
-		Contents: "Test Body"})
+	adminConf := model.BusinessSettings.Get("ECBI_ADMINS")
+	var mail mailer.EMail
+	mail.To = strings.Split(adminConf.Value, ",")
+	mail.Subject = "Example task been finished"
+	mail.Contents = "This task is used for test whether the system is alive, no business operations"
+	mail.Attachments = []string{logger.GetPath("EXAMPLE")}
+	mailer.PushToQueue(mail)
 }

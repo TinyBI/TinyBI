@@ -27,19 +27,20 @@ import (
 	"tinybi/logger"
 	"tinybi/mailer"
 	"tinybi/model"
+	coreTask "tinybi/task"
 )
 
-type exampleHandler struct {
-	baseHandler
+type ExampleHandler struct {
+	coreTask.BaseHandler
 }
 
-func newExampleHandler() *exampleHandler {
-	handler := new(exampleHandler)
-	handler.mutex = new(sync.Mutex)
+func NewExampleHandler() *ExampleHandler {
+	handler := new(ExampleHandler)
+	handler.Mutex = new(sync.Mutex)
 	return handler
 }
 
-func (this exampleHandler) Exec() {
+func (this ExampleHandler) Exec() {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Printf("EXAMPLE", "*Panic:%s", err)
@@ -47,7 +48,7 @@ func (this exampleHandler) Exec() {
 	}()
 	log.Println("Example task")
 	logger.Printf("EXAMPLE", "Example Task")
-	adminConf := model.BusinessSettings.Get("ECBI_ADMINS")
+	adminConf := model.BusinessSettings.Get("BI_ADMINS")
 	var mail mailer.EMail
 	mail.To = strings.Split(adminConf.Value, ",")
 	mail.Subject = "Example task been finished"

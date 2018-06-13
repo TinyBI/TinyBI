@@ -23,7 +23,9 @@ package main
 import (
 	"log"
 	"net/http"
+	coreTask "tinybi/task"
 	"tinybi/web"
+	"tinybi_mods/index/task"
 )
 
 type IndexApp struct {
@@ -61,4 +63,5 @@ var ModWebApp IndexApp
 func init() {
 	PModWebApp = NewIndexApp()
 	ModWebApp = *PModWebApp
+	coreTask.RegTasks["EXAMPLE"] = task.NewExampleHandler()
 }

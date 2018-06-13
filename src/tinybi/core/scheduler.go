@@ -21,7 +21,7 @@
 package core
 
 import (
-	"github.com/gljubojevic/gocron"
+	"github.com/jasonlvhit/gocron"
 )
 
 var Scheduler *gocron.Scheduler

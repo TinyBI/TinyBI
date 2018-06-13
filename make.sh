@@ -20,8 +20,8 @@ build(){
 	if [ ! -d $PKGDIR ]; then
 		$GOGET github.com/go-sql-driver/mysql
 		$GOGET github.com/go-xorm/xorm
-		#$GOGET github.com/jasonlvhit/gocron
-		$GOGET github.com/gljubojevic/gocron
+		$GOGET github.com/jasonlvhit/gocron
+		#$GOGET github.com/gljubojevic/gocron
 		$GOGET github.com/360EntSecGroup-Skylar/excelize
 		$GOGET github.com/go-gomail/gomail
 		$GOGET github.com/chai2010/gettext-go/gettext

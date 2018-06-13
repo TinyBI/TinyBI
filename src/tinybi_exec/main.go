@@ -78,6 +78,8 @@ func main() {
 	initConf(*configPath)
 	initDB()
 	initScheduler()
+	initWebMods()
+	startScheduler()
 	startMailQueue()
 	startWebServer()
 }
@@ -122,6 +124,9 @@ func initDBTables() {
 
 func initScheduler() {
 	task.RegScheduleTasks()
+}
+
+func startScheduler() {
 	task.StartSchedule()
 }
 
@@ -133,7 +138,6 @@ func startMailQueue() {
 
 func startWebServer() {
 	web.InitTemplate()
-	initWebMods()
 	http.HandleFunc("/", HttpServer)
 	log.Fatal(http.ListenAndServe(core.Conf.Web.Host, nil))
 }

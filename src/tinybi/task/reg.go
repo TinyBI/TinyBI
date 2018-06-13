@@ -29,7 +29,6 @@ import (
 
 //Register tasks here;
 func RegScheduleTasks() {
-	RegTasks["EXAMPLE"] = newExampleHandler()
 	//Load php modules;
 	regModPhpTasks()
 }

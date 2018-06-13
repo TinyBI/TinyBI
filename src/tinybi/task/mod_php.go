@@ -38,12 +38,12 @@ type modPhpHandler struct {
 	filePath   string
 	parameters []string
 	mailScript string
-	baseHandler
+	BaseHandler
 }
 
 func newModPhpHandler() *modPhpHandler {
 	handler := new(modPhpHandler)
-	handler.mutex = new(sync.Mutex)
+	handler.Mutex = new(sync.Mutex)
 	handler.loggerId = "MOD_PHP_EXEC"
 	phpExec := model.BusinessSettings.Get("PHP_EXEC")
 	if phpExec != nil {
@@ -81,8 +81,8 @@ func (this modPhpHandler) Exec() {
 		return
 	}
 	logger.Printf(this.loggerId, "Start of php module:%s", this.filePath)
-	this.mutex.Lock()
-	defer this.mutex.Unlock()
+	this.Mutex.Lock()
+	defer this.Mutex.Unlock()
 	args := make([]string, 0)
 	args = append(args, this.filePath)
 	if len(this.parameters) > 0 {

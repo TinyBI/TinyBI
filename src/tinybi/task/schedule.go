@@ -30,7 +30,7 @@ import (
 	"tinybi/core"
 	"tinybi/model"
 
-	"github.com/gljubojevic/gocron"
+	"github.com/jasonlvhit/gocron"
 )
 
 const ReloadInterval uint64 = 10
@@ -42,36 +42,36 @@ type handler interface {
 	GetExecAddr() func()
 }
 
-type baseHandler struct {
+type BaseHandler struct {
 	execAddr  func()
 	task      model.CoreTask
 	scheduled bool
-	mutex     *sync.Mutex
+	Mutex     *sync.Mutex
 }
 
-func newHandler() *baseHandler {
-	handler := new(baseHandler)
-	handler.mutex = new(sync.Mutex)
+func newHandler() *BaseHandler {
+	handler := new(BaseHandler)
+	handler.Mutex = new(sync.Mutex)
 	return handler
 }
 
-func (this baseHandler) Exec() {
+func (this BaseHandler) Exec() {
 	//
 }
 
-func (this baseHandler) GetExecAddr() func() {
+func (this BaseHandler) GetExecAddr() func() {
 	return this.execAddr
 }
 
-func (this *baseHandler) SetExecAddr(f func()) {
+func (this *BaseHandler) SetExecAddr(f func()) {
 	this.execAddr = f
 }
 
-func (this baseHandler) IsScheduled() bool {
+func (this BaseHandler) IsScheduled() bool {
 	return this.scheduled
 }
 
-func (this baseHandler) IsTaskUpdated(task model.CoreTask) bool {
+func (this BaseHandler) IsTaskUpdated(task model.CoreTask) bool {
 	if this.task.LastUpdated.Unix() < task.LastUpdated.Unix() ||
 		this.task.Id != task.Id ||
 		this.task.ScheduleAt != task.ScheduleAt ||
@@ -81,11 +81,11 @@ func (this baseHandler) IsTaskUpdated(task model.CoreTask) bool {
 	return false
 }
 
-func (this *baseHandler) SetScheduled(isScheduled bool) {
+func (this *BaseHandler) SetScheduled(isScheduled bool) {
 	this.scheduled = isScheduled
 }
 
-func (this *baseHandler) UpdateTask(task model.CoreTask) {
+func (this *BaseHandler) UpdateTask(task model.CoreTask) {
 	this.task.Id = task.Id
 	this.task.TaskName = task.TaskName
 	this.task.Description = task.Description

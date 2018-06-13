@@ -25,11 +25,12 @@ Openource BI Report System, simple and powerful
 ### Features
 - Modulized Architecture (Done)
 - Scheduled Concurrent Tasks (Done)
-- RESTFUL APIs (In process)
 - Multilingual WEB UI (Done)
+- Configurable PHP modules (Done)
+- RESTFUL APIs (In process)
 
 ### Business Modules
-- General Ledger (Done, Will by splited from core)
+- General Ledger (Done, Will be splited from core)
 
 ### Installation Dependencies
 github.com/go-sql-driver/mysql

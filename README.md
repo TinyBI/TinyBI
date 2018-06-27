@@ -23,11 +23,11 @@ Openource BI Report System, simple and powerful
 ![Version Page](https://github.com/TinyBI/TinyBI/raw/master/screenshots/aboutModule.png "Version Page")
 
 ### Features
-- Modulized Architecture (Done)
-- Scheduled Concurrent Tasks (Done)
-- Multilingual WEB UI (Done)
-- Configurable PHP modules (Done)
-- RESTFUL APIs (In process)
+- [x] Modulized Architecture (Done)
+- [x] Scheduled Concurrent Tasks (Done)
+- [x] Multilingual WEB UI (Done)
+- [x] Configurable PHP modules (Done)
+- [x] RESTFUL APIs (In process)
 
 ### Business Modules
 - General Ledger (Done, Will be splited from core)

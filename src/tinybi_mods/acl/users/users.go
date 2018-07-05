@@ -66,7 +66,7 @@ func UserList(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(nullRet))
 			return
 		}
-		for i, _ := range fullRet.Data {
+		for i := range fullRet.Data {
 			editI18n := gettext.Gettext("Edit")
 			deleteI18n := gettext.Gettext("Delete")
 			fullRet.Data[i].EditUrl = fmt.Sprintf(`<a href="/acl.html?act=userEdit&id=%d">%s</a>`, fullRet.Data[i].Id, editI18n)
@@ -83,7 +83,7 @@ func UserEditPage(act string, w http.ResponseWriter, r *http.Request) {
 			Title string
 			Act   string
 			User  model.CoreUser
-			Info struct {
+			Info  struct {
 				Show    bool
 				Type    string
 				Message string
@@ -138,7 +138,7 @@ func UserEditExec(act string, w http.ResponseWriter, r *http.Request) {
 			Title string
 			Act   string
 			User  model.CoreUser
-			Info struct {
+			Info  struct {
 				Show    bool
 				Type    string
 				Message string

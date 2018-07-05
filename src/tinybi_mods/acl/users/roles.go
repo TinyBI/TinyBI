@@ -66,7 +66,7 @@ func RoleList(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(nullRet))
 			return
 		}
-		for i, _ := range fullRet.Data {
+		for i := range fullRet.Data {
 			editI18n := gettext.Gettext("Edit")
 			deleteI18n := gettext.Gettext("Delete")
 			fullRet.Data[i].EditUrl = fmt.Sprintf(`<a href="/acl.html?act=roleEdit&id=%d">%s</a>`, fullRet.Data[i].Id, editI18n)

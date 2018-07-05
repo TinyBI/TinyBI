@@ -65,7 +65,7 @@ func GetPath(id string) string {
 		return ""
 	}
 	curFolder := core.FromUnixTime(time.Now().Unix(), core.DefaultDateFormat)
-	path := filepath.Join(pathPrefix, curFolder)
+	var path string = filepath.Join(pathPrefix, curFolder)
 	path = filepath.Join(pathPrefix, curFolder, id)
 	path += ".txt"
 	return path

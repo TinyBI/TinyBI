@@ -51,7 +51,7 @@ func AclRedirect(w http.ResponseWriter, r *http.Request, code string, url string
 
 func GetUILang(w http.ResponseWriter, r *http.Request) string {
 	//Default language;
-	lang := "en_US"
+	var lang string = "en_US"
 	//Try to get language code from cookie;
 	langCookie, err := r.Cookie("lang")
 	if err != nil {

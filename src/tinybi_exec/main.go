@@ -48,7 +48,12 @@ import (
 func main() {
 	configPath := flag.String("c", "etc/config.json", "Path of configuration file")
 	logPath := flag.String("l", "stdout", "Path of log file, use stdout to print logs at console")
+	showHelp := flag.Bool("h", false, "Show usage")
 	flag.Parse()
+	if *showHelp {
+		flag.Usage()
+		return
+	}
 	//Init Log;
 	var fLog *os.File
 	if *logPath != "stdout" {

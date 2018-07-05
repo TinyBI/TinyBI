@@ -54,4 +54,9 @@ github.com/chai2010/gettext-go/gettext
 ./make.sh build
 #Build the modules
 ./make.sh build_mods
+#Create a new configuration from example
+cp etc/config.json.example etc/config.json
+#Edit the config.json, then start the binary
+bin/tinybi_exec
+#Visit http://your_address/setup.html to setup the system administrator
 ```

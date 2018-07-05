@@ -63,7 +63,7 @@ func (this LoginApp) Dispatch(w http.ResponseWriter, r *http.Request) {
 
 func (this LoginApp) setUILang(w http.ResponseWriter, r *http.Request) {
 	//Default language;
-	var lang string = "en_US"
+	var lang string = web.DefaultLang
 	lang = r.URL.Query().Get("lang")
 	if lang == "" {
 		lang = "en_US"

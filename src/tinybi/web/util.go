@@ -27,6 +27,7 @@ import (
 )
 
 const SessionCookieId string = "ECS8086"
+const DefaultLang string = "en_US"
 
 func AclRedirect(w http.ResponseWriter, r *http.Request, code string, url string) bool {
 	cookie, err := r.Cookie(SessionCookieId)
@@ -51,7 +52,7 @@ func AclRedirect(w http.ResponseWriter, r *http.Request, code string, url string
 
 func GetUILang(w http.ResponseWriter, r *http.Request) string {
 	//Default language;
-	var lang string = "en_US"
+	var lang string = DefaultLang
 	//Try to get language code from cookie;
 	langCookie, err := r.Cookie("lang")
 	if err != nil {

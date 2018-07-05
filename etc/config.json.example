@@ -1,0 +1,22 @@
+{
+  "debug": true,
+  "mail_queue": true,
+  "time_zone": "Asia/Shanghai",
+  "mods_path": "/opt/TinyBI/mods",
+  "db": {
+    "driver": "mysql",
+    "connection": "username:password@/db?charset=utf8"
+  },
+  "web": {
+    "host": ":8080",i
+    "session_timeout": 600,
+    "template_timeout": 60,
+    "locales": [
+      "zh_CN"
+    ],
+    "root_path": "/opt/TinyBI/www"
+  },
+  "logger": {
+    "root_path": "/opt/TinyBI/var/log"
+  }
+}

@@ -83,7 +83,7 @@ func UserEditPage(act string, w http.ResponseWriter, r *http.Request) {
 			Title string
 			Act   string
 			User  model.CoreUser
-			Info  struct {
+			Info struct {
 				Show    bool
 				Type    string
 				Message string
@@ -138,7 +138,7 @@ func UserEditExec(act string, w http.ResponseWriter, r *http.Request) {
 			Title string
 			Act   string
 			User  model.CoreUser
-			Info  struct {
+			Info struct {
 				Show    bool
 				Type    string
 				Message string
@@ -158,6 +158,7 @@ func UserEditExec(act string, w http.ResponseWriter, r *http.Request) {
 		}
 		Html.User.RoleId = int64(roleId)
 		Html.User.PasswordSalt = core.RandomString(64)
+		Html.User.Password = model.CoreUserPassword(Html.User.Password, Html.User.PasswordSalt)
 		Html.User.Status = r.Form.Get("active")
 		if Html.User.Status == "" {
 			Html.User.Status = "INACTIVE"

@@ -78,26 +78,38 @@
 
 <body>
 
-        <div class="container">
-            <div class="row">
-                <h3>Oops! An error has occured</h3>
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">We couldn't find the page...</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p>
-                            Sorry, but the page you are looking for was either not found or does not exist.
-                        </p>
-                    </div>
+<div class="container">
+    <div class="row">
+        <h3>TinyBI Setup Program</h3>
+        <div class="panel panel-red">
+            <div class="panel-heading">
+                <h3 class="panel-title">Fatal Error</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    Error occurs when doing setup steps!
+                </p>
+                <div class="well">
+                    <h4>Detail</h4>
+                    <p>{{.ErrorInfo}}</p>
                 </div>
+                <p>
+                    You can visit the following link to get supports and report bugs.
+                </p>
+                <p>
+                    <a href="https://github.com/TinyBI/TinyBI">https://github.com/TinyBI/TinyBI</a>
+                </p>
+            </div>
+            <div class="panel-footer">
+
             </div>
         </div>
+    </div>
+</div>
 
 
-    <!-- Custom Theme JavaScript -->
-    <script src="/public/dist/js/sb-admin-2.js"></script>
-
+<!-- Custom Theme JavaScript -->
+<script src="/public/dist/js/sb-admin-2.js"></script>
 </body>
 
 </html>

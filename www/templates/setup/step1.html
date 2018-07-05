@@ -78,26 +78,38 @@
 
 <body>
 
-        <div class="container">
-            <div class="row">
-                <h3>Oops! An error has occured</h3>
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">We couldn't find the page...</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p>
-                            Sorry, but the page you are looking for was either not found or does not exist.
-                        </p>
-                    </div>
-                </div>
+<div class="container">
+    <div class="row">
+        <h3>TinyBI Setup Program</h3>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Administrator Information</h3>
+            </div>
+            <div class="panel-body">
+                <form id="config" role="form" action="/setup.html?act=step1" method="post">
+                    <fieldset>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="E-mail" name="email" type="email" value="" autofocus required>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Nickname" name="nickname" type="text" value="" autofocus required>
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="panel-footer">
+                <button id="agreed" type="button" class="btn btn-primary" onclick="document.getElementById('config').submit();return false">Finish</button>
             </div>
         </div>
+    </div>
+</div>
 
 
-    <!-- Custom Theme JavaScript -->
-    <script src="/public/dist/js/sb-admin-2.js"></script>
-
+<!-- Custom Theme JavaScript -->
+<script src="/public/dist/js/sb-admin-2.js"></script>
 </body>
 
 </html>

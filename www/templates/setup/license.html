@@ -78,26 +78,67 @@
 
 <body>
 
-        <div class="container">
-            <div class="row">
-                <h3>Oops! An error has occured</h3>
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">We couldn't find the page...</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p>
-                            Sorry, but the page you are looking for was either not found or does not exist.
-                        </p>
-                    </div>
-                </div>
+<div class="container">
+    <div class="row">
+        <h3>TinyBI Setup Program</h3>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">MIT License</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    Copyright (c) 2018 by Lei Peng <pyp126@gmail.com>
+                </p>
+                <p>
+                    Permission is hereby granted, free of charge, to any person obtaining a copy
+                    of this software and associated documentation files (the "Software"), to deal
+                    in the Software without restriction, including without limitation the rights
+                    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+                    copies of the Software, and to permit persons to whom the Software is
+                    furnished to do so, subject to the following conditions:
+                </p>
+                <p>
+                    The above copyright notice and this permission notice shall be included in all
+                    copies or substantial portions of the Software.
+                </p>
+                <p>
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+                    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+                    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+                    SOFTWARE.
+                </p>
+            </div>
+            <div class="panel-footer">
+                <button id="agreed" type="button" class="btn btn-primary disabled" onclick="step1()">I have read and agree to the License</button>
             </div>
         </div>
+    </div>
+</div>
 
 
-    <!-- Custom Theme JavaScript -->
-    <script src="/public/dist/js/sb-admin-2.js"></script>
-
+<!-- Custom Theme JavaScript -->
+<script src="/public/dist/js/sb-admin-2.js"></script>
+<script>
+    var i=15;
+    $(function(){
+        var interval=setInterval(function(){
+                i-=1;
+                if(i==0){
+                    $("#agreed").html("I have read and agree to the License");
+                    $("#agreed").removeClass("disabled");
+                    clearInterval(interval);
+                }else{
+                    $("#agreed").html("You need "+i+" seconds to read the License");
+                }
+            },1000);
+    });
+    function step1(){
+        window.location.href="/setup.html?act=step1"
+    }
+</script>
 </body>
 
 </html>

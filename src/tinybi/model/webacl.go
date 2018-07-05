@@ -24,6 +24,9 @@ import (
 	"log"
 	"time"
 	"tinybi/core"
+	"crypto/md5"
+	"fmt"
+	"io"
 )
 
 //Access Control Control Models for WEB access;
@@ -56,6 +59,20 @@ type CoreAclCode struct {
 	Title       string `xorm:"'title'"`
 	Code        string `xorm:"'code'"`
 	Description string `xorm:"'Description'"`
+}
+
+func CoreUserPassword(rawPassword string, salt string) string {
+	if rawPassword == "" || salt == "" {
+		return ""
+	}
+	pHash := md5.New()
+	io.WriteString(pHash, rawPassword)
+	pp := fmt.Sprintf("%x", pHash.Sum(nil))
+	pp += salt
+	fpHash := md5.New()
+	io.WriteString(fpHash, pp)
+	fp := fmt.Sprintf("%x", fpHash.Sum(nil))
+	return fp
 }
 
 func InstallAclTables() {

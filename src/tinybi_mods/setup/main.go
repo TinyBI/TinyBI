@@ -21,11 +21,11 @@
 package main
 
 import (
-	"tinybi/core"
-	"tinybi/web"
-	"net/http"
-	"tinybi/model"
 	"log"
+	"net/http"
+	"tinybi/core"
+	"tinybi/model"
+	"tinybi/web"
 )
 
 type SetupApp struct {

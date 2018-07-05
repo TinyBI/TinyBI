@@ -21,9 +21,9 @@
 package test
 
 import (
+	"testing"
 	"tinybi/core"
 	"tinybi/model"
-	"testing"
 )
 
 func TestCoreUserPassword(t *testing.T) {

@@ -21,12 +21,12 @@
 package model
 
 import (
-	"log"
-	"time"
-	"tinybi/core"
 	"crypto/md5"
 	"fmt"
 	"io"
+	"log"
+	"time"
+	"tinybi/core"
 )
 
 //Access Control Control Models for WEB access;

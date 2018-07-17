@@ -141,7 +141,7 @@ func RoleEditPage(act string, w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		err = web.GetTemplate(lang, "core/Role_manager_editor.html").Execute(w, Html)
+		err = web.GetTemplate(lang, "core/role_manager_editor.html").Execute(w, Html)
 		if err != nil {
 			log.Println(err)
 		}

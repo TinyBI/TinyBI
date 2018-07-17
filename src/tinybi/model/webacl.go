@@ -80,11 +80,13 @@ func InstallAclTables() {
 	core.DB.Table("core_roles").Sync2(new(CoreRole))
 	core.DB.Table("core_acl_codes").Sync2(new(CoreAclCode))
 	//Insert basic acl codes if they are not exist;
-	basicCodes := make([][]string, 4)
+	basicCodes := make([][]string, 6)
 	basicCodes[0] = []string{"User Mangement", "USER_ADMIN_VIEW", "User Management, Readonly"}
 	basicCodes[1] = []string{"User Mangement", "USER_ADMIN_EDIT", "Edit & Delete Users"}
 	basicCodes[2] = []string{"Role Mangement", "ROLE_ADMIN_VIEW", "Role Management, Readonly"}
 	basicCodes[3] = []string{"Role Mangement", "ROLE_ADMIN_EDIT", "Edit & Delete Roles"}
+	basicCodes[4] = []string{"Business Settings", "SETTINGS_ADMIN_VIEW", "Business Settings, Readonly"}
+	basicCodes[5] = []string{"Business Settings", "SETTINGS_ADMIN_EDIT", "Edit & Delete Business Settings"}
 	for _, basicCode := range basicCodes {
 		var code CoreAclCode
 		ok, err := core.DB.Table("core_acl_codes").Where("code=?", basicCode[1]).Get(&code)

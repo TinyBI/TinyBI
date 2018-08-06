@@ -27,7 +27,7 @@ Openource BI Report System, simple and powerful
 - [x] Scheduled Concurrent Tasks (Done)
 - [x] Multilingual WEB UI (Done)
 - [x] Configurable PHP modules (Done)
-- [x] RESTFUL APIs (In process)
+- [x] WEB APIs (Done)
 
 ### Business Modules
 - General Ledger (Done, Will be splited from core)
